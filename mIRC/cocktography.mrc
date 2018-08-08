@@ -13,7 +13,7 @@
 ;  
 ; This script relies on a hash table to function.
 ; The contents of this table can be gotten from:
-; https://pastebin.com/JMc82Api
+; https://github.com/fidsah/cocktography/blob/master/mIRC/code/dickoder.txt
 ; Save the contents to a text file, and ensure that the path
 ; in the function below matches this file.
 ; First time use will require you to use the command
