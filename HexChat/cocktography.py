@@ -33,7 +33,6 @@ single_line_re = re.compile(r"{}(.*){}".format(START, STOP))
 multi_line_start = re.compile(r"{}(.*){}".format(START, CONT))
 multi_line_cont = re.compile(r"{}(.*){}".format(MARK, CONT))
 multi_line_end = re.compile(r"{}(.*){}".format(MARK, STOP))
-poop = re.compile(r"^poop")
 
 def to_unicode(strng):
     return(strng)
