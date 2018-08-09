@@ -115,7 +115,6 @@ def dechode_cb(word, word_eol, userdata):
     hexchat.prnt(dechoder(word[1])) 
     return hexchat.EAT_NONE
 
-#help="/ONOTICE <message> Sends a notice to all ops"
 hexchat.hook_command("enchode",enchode_cb)
 hexchat.hook_command("dechode",dechode_cb)
 
