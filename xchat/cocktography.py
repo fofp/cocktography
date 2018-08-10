@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 import itertools
 import base64
 import StringIO
-import regex as re
-import hexchat
+import re
+import xchat
 import os
 
 __module_name__ = str("cocktography")
@@ -95,7 +95,7 @@ def dechode(text):
 def cocktography_cb(word, word_eol, userdata):
     text = RE_cocks.search(word[1])
     if not text:
-        return hexchat.EAT_NONE
+        return xchat.EAT_NONE
     message = text.group(0)
 
     if message.startswith(START) or message.startswith(MARK):
@@ -106,38 +106,38 @@ def cocktography_cb(word, word_eol, userdata):
             if message.startswith(START): # we have a single line enchoded message
                 dechoded = dechode(message)
                 formatted = RE_cocks.sub(dechoded, word[1])
-                hexchat.emit_print("Channel Message",'\0034\002\037' + word[0] + '\0034\002\037',formatted,"")
-                return hexchat.EAT_HEXCHAT
+                xchat.emit_print("Channel Message",'\0034\002\037' + word[0] + '\0034\002\037',formatted,"")
+                return xchat.EAT_XCHAT
             else:
                 enchoded = "{} {}".format(history, message) if history else message
                 dechoded = dechode(enchoded)
                 formatted = RE_cocks.sub(dechoded, word[1])
                 del buffer[word[0]]
-                hexchat.emit_print("Channel Message",'\0034\002\037' + word[0] + '\0034\002\037',formatted,"")
-                return hexchat.EAT_HEXCHAT
+                xchat.emit_print("Channel Message",'\0034\002\037' + word[0] + '\0034\002\037',formatted,"")
+                return xchat.EAT_XCHAT
         else:
             buffer[word[0]] = "{} {}".format(history, message) if history else message
-            return hexchat.EAT_HEXCHAT
+            return xchat.EAT_XCHAT
 
 for event in events:
-    hexchat.hook_print(event, cocktography_cb)
+    xchat.hook_print(event, cocktography_cb)
 
 def enchode_cb(word, word_eol, userdata):
     input = word_eol[1][:150]
     s = enchode(input)
     buffer["input"] = s.splitlines()
     for dongs in buffer["input"]:
-        hexchat.get_context().command('say ' + dongs)
+        xchat.get_context().command('say ' + dongs)
     del buffer["input"]
-    hexchat.emit_print("Channel Message",'\0034\002\037' + hexchat.get_info('nick') + '\0034\002\037',input,"")
+    xchat.emit_print("Channel Message",'\0034\002\037' + xchat.get_info('nick') + '\0034\002\037',input,"")
     
-    return hexchat.EAT_HEXCHAT
+    return xchat.EAT_HEXCHAT
 
 def dechode_cb(word, word_eol, userdata):
-    hexchat.prnt(dechode(word[1])) 
-    return hexchat.EAT_HEXCHAT
+    xchat.prnt(dechode(word[1])) 
+    return xchat.EAT_HEXCHAT
 
-hexchat.hook_command("enchode",enchode_cb)
-hexchat.hook_command("dechode",dechode_cb)
+xchat.hook_command("enchode",enchode_cb)
+xchat.hook_command("dechode",dechode_cb)
 
-hexchat.prnt(__module_name__ + " version " + __module_version__ + " loaded")
+xchat.prnt(__module_name__ + " version " + __module_version__ + " loaded")
