@@ -20,12 +20,6 @@
 ; /cockload
 ; to load the cocktography, however it will load automatically
 ; on subsequent client starts.
-;
-;
-; TODO:
-; preserve spaces
-;
-
 
 alias cockload {
   .hmake cocktography 90
