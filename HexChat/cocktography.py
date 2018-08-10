@@ -131,11 +131,11 @@ def enchode_cb(word, word_eol, userdata):
     del buffer["input"]
     hexchat.emit_print("Channel Message",'\0034\002\037' + hexchat.get_info('nick') + '\0034\002\037',input,"")
     
-    return hexchat.EAT_NONE
+    return hexchat.EAT_HEXCHAT
 
 def dechode_cb(word, word_eol, userdata):
     hexchat.prnt(dechode(word[1])) 
-    return hexchat.EAT_NONE
+    return hexchat.EAT_HEXCHAT
 
 hexchat.hook_command("enchode",enchode_cb)
 hexchat.hook_command("dechode",dechode_cb)
