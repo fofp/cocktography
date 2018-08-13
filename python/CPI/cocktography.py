@@ -89,13 +89,13 @@ class Cocktograph(object):
 
         self.CONTROL_CODES = [self.START, self.STOP, self.CONT, self.MARK]
 
-        self.RE_cocks = re.compile(r"({}|{}).*({}|{})".format(self.START,
-                                                                self.MARK,
-                                                                self.STOP,
-                                                                self.CONT))
+        self.RE_cocks = re.compile(r"^({}|{})[8=mwd~ ]*({}|{})$".format(self.START,
+                                                                        self.MARK,
+                                                                        self.STOP,
+                                                                        self.CONT))
 
 
-    def enchode(self, text, passes=2, split_at=340, marker="\x02"):
+    def enchode(self, text, passes=2, split_at=340, marker="\x0F"):
         """Enchode a message.
 
         accepts:
@@ -123,7 +123,7 @@ class Cocktograph(object):
             return(ret)
 
     def dechode(self, text, limit=5, force_security=False,
-                ignore_invalid=True, marker="\x02"):
+                ignore_invalid=True, marker="\x0F"):
         """Dechode a message.
 
         accepts:
