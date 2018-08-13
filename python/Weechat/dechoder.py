@@ -1,14 +1,18 @@
 #-*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import regex as re
-from CPI import cocktography
 try:
     import weechat
 except:
     raise Exception("This module must be used with Weechat!")
+if __name__ == '__main__' and __package__ is None:
+    from os import sys, path
+    sys.path.append(path.dirname(path.dirname(path.abspath(__file__))))
+from CPI import cocktography
 
 
 RE_host = re.compile(r"(?<=\:).*(?= PRIVMSG)")
+
 
 api = cocktography.Cocktograph()
 
@@ -16,34 +20,24 @@ __COCKS = {}
 
 
 def colorize(text):
-    result = weechat.hook_modifier_exec("irc_color_decode", "1", text)
     try:
-        return(unicode(result, 'utf-8', errors='ignore'))
+        text = text.encode('utf-8')
     except:
-        return(result)
+        pass
+    result = weechat.hook_modifier_exec("irc_color_decode", "1", text)
+    return(unicode(result, 'utf-8', errors='ignore'))
 
 
-def format_for_weechat(text):
-    text = colorize(text)
-    try:
-        try:
-            final = "{}".format(text)
-        except:
-            "[🍆]{}".format(unicode(text, 'utf-8'))
-        return(final.encode('utf-8'))
-    except Exception as e:
-        import traceback
-        weechat.prnt("", traceback.format_exc())
-        weechat.prnt("", repr(type(final)))
-        return(text)
+def format_for_weechat(text, colorize=True):
+    return(colorize(text).encode('utf-8'))
 
 
 def autococktography(data, modifier, modifier_data, string):
     global api, __COCKS
+    raw_message = api.to_unicode(string)
     message = api.get_cockstring(string)
     if not message or "irc_raw" in modifier_data:
         return(string)
-    buffer = weechat.current_buffer()
     user = RE_host.search(string)
     user = user.group(0) if user else "null"
     if message.startswith(api.START) or message.startswith(api.MARK):
@@ -51,14 +45,14 @@ def autococktography(data, modifier, modifier_data, string):
         if message.endswith(api.STOP):
             if message.startswith(api.START): # we have a single line enchoded message
                 dechoded = api.dechode(message)
-                formatted = message.replace(message, dechoded)
+                formatted = raw_message.replace(message, dechoded)
                 __COCKS[user] = []
                 return(format_for_weechat(formatted))
             else:
                 enchoded = " ".join(history + [message])
                 __COCKS[user] = []
                 dechoded = api.dechode(enchoded)
-                formatted = message.replace(message, dechoded)
+                formatted = raw_message.replace(message, dechoded)
                 return(format_for_weechat(formatted))
         else:
             __COCKS[user] = history + [message]
