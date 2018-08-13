@@ -11,6 +11,9 @@ if __name__ == '__main__' and __package__ is None:
 from CPI import cocktography
 
 
+ENCHODE_MARKER = "\x034"
+
+
 RE_host = re.compile(r"(?<=\:).*(?= PRIVMSG)")
 
 
@@ -51,7 +54,7 @@ def autococktography(data, modifier, modifier_data, string):
             else:
                 enchoded = " ".join(history + [message])
             __COCKS[user] = []
-            dechoded = "\x034 {} \x0F".format(api.dechode(enchoded))
+            dechoded = "{}{}\x0F".format(ENCHODE_MARKER, api.dechode(enchoded))
             formatted = raw_message.replace(message, dechoded)
             return(format_for_weechat(formatted))
         else:
