@@ -12,6 +12,7 @@ from CPI import cocktography
 
 
 ENCHODE_MARKER = "\x034"
+DISPLAY_PARTIAL_ENCHODED_MESSAGES = True
 
 
 RE_host = re.compile(r"(?<=\:).*(?= PRIVMSG)")
@@ -38,12 +39,13 @@ def format_for_weechat(text, colorize_text=True):
 
 def autococktography(data, modifier, modifier_data, string):
     global api, __COCKS
-    raw_message = unicode(string)
+    raw_message = unicode(string, 'utf-8')
     if "irc_raw" in modifier_data:
         return(string)
     message = api.get_cockstring(raw_message)
     if not message:
         return(string)
+    buffer = weechat.current_buffer()
     user = RE_host.search(raw_message)
     user = user.group(0) if user else "null"
     if message.startswith(api.START) or message.startswith(api.MARK):
@@ -56,6 +58,8 @@ def autococktography(data, modifier, modifier_data, string):
             __COCKS[user] = []
             dechoded = "{}{}\x0F".format(ENCHODE_MARKER, api.dechode(enchoded))
             formatted = raw_message.replace(message, dechoded)
+            if DISPLAY_PARTIAL_ENCHODED_MESSAGES:
+                formatted = "[{}]\t\x0315{}\x0F\n{}".format(user, enchoded, formatted)
             return(format_for_weechat(formatted))
         else:
             __COCKS[user] = history + [message]
