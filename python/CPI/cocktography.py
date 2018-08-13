@@ -38,7 +38,6 @@ def break_lines(text, split_at=340):
     """
     if type(text) == str or type(text) == unicode:
         text = text.split(" ")
-        print(text)
     lines = []
     current_line = []
     for symb in text:
@@ -116,11 +115,8 @@ class Cocktograph(object):
 
         cockstring = " ".join([self.dechoder_ring["in"][c] for c in text])
         if len(cockstring) < split_at:
-            print("Not splitting")
             return(" ".join([self.START, cockstring, self.STOP]))
         else:
-            print("Splitting")
-            print(len(cockstring))
             lines = break_lines(cockstring, split_at)
             sep = " {}\n{} ".format(self.CONT, self.MARK)
             ret = "{} {} {}".format(self.START, sep.join(lines), self.STOP)
@@ -148,13 +144,11 @@ class Cocktograph(object):
         dechoded = "".join([self.dechoder_ring["out"][w] for w in text.split()
                             if w not in self.CONTROL_CODES])
         for _ in range(limit):
-            print("[{}] {}".format(_, to_unicode(dechoded)))
             try:
                 dechoded = base64.decodestring(dechoded)
                 if to_unicode(dechoded).startswith(marker):
                     break
             except Exception as e:
-                print(e)
                 break
         return(to_unicode(dechoded).lstrip(marker))
 
