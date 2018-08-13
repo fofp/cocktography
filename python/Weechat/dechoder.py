@@ -34,7 +34,7 @@ def format_for_weechat(text, colorize=True):
 
 def autococktography(data, modifier, modifier_data, string):
     global api, __COCKS
-    raw_message = api.to_unicode(string)
+    raw_message = cocktography.to_unicode(string)
     message = api.get_cockstring(string)
     if not message or "irc_raw" in modifier_data:
         return(string)
