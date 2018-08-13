@@ -89,10 +89,10 @@ class Cocktograph(object):
 
         self.CONTROL_CODES = [self.START, self.STOP, self.CONT, self.MARK]
 
-        self.RE_cocks = re.compile(r"^({}|{})[8=mwd~ ]*({}|{})$".format(self.START,
-                                                                        self.MARK,
-                                                                        self.STOP,
-                                                                        self.CONT))
+        self.RE_cocks = re.compile(r"({}|{})[8=mwD~ ]*({}|{})".format(self.START,
+                                                                      self.MARK,
+                                                                      self.STOP,
+                                                                      self.CONT))
 
 
     def enchode(self, text, passes=2, split_at=340, marker="\x0F"):
@@ -153,10 +153,7 @@ class Cocktograph(object):
         return(to_unicode(dechoded).lstrip(marker))
 
     def get_cockstring(self, text):
-        """Get cockstring from text.
-
-        Requires only a message - no raw IRC messages please.
-        """
+        """Get cockstring from text."""
         text = to_unicode(text)
         result = self.RE_cocks.search(text)
         return(result.group(0) if result else None)

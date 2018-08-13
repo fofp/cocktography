@@ -20,40 +20,40 @@ __COCKS = {}
 
 
 def colorize(text):
-    try:
+    if isinstance(text, unicode):
         text = text.encode('utf-8')
-    except:
-        pass
     result = weechat.hook_modifier_exec("irc_color_decode", "1", text)
-    return(unicode(result, 'utf-8', errors='ignore'))
+    result = unicode(result, 'utf-8', errors='ignore')
+    return(result)
 
 
-def format_for_weechat(text, colorize=True):
-    return(colorize(text).encode('utf-8'))
+def format_for_weechat(text, colorize_text=True):
+    return(colorize(text).encode('utf-8')
+           if colorize_text
+           else text.encode('utf-8'))
 
 
 def autococktography(data, modifier, modifier_data, string):
     global api, __COCKS
-    raw_message = cocktography.to_unicode(string)
-    message = api.get_cockstring(string)
-    if not message or "irc_raw" in modifier_data:
+    raw_message = unicode(string)
+    if "irc_raw" in modifier_data:
         return(string)
-    user = RE_host.search(string)
+    message = api.get_cockstring(raw_message)
+    if not message:
+        return(string)
+    user = RE_host.search(raw_message)
     user = user.group(0) if user else "null"
     if message.startswith(api.START) or message.startswith(api.MARK):
         history = __COCKS.get(user, [])
         if message.endswith(api.STOP):
             if message.startswith(api.START): # we have a single line enchoded message
-                dechoded = api.dechode(message)
-                formatted = raw_message.replace(message, dechoded)
-                __COCKS[user] = []
-                return(format_for_weechat(formatted))
+                enchoded = message
             else:
                 enchoded = " ".join(history + [message])
-                __COCKS[user] = []
-                dechoded = api.dechode(enchoded)
-                formatted = raw_message.replace(message, dechoded)
-                return(format_for_weechat(formatted))
+            __COCKS[user] = []
+            dechoded = "\x034 {} \x0F".format(api.dechode(enchoded))
+            formatted = raw_message.replace(message, dechoded)
+            return(format_for_weechat(formatted))
         else:
             __COCKS[user] = history + [message]
             return ""
@@ -61,13 +61,13 @@ def autococktography(data, modifier, modifier_data, string):
 
 def enchoder_cmd(data, buffer, args):
     enchoded = api.enchode(args[:150])
-    weechat.command(buffer, enchoded)
+    weechat.command(buffer, format_for_weechat(enchoded))
     return weechat.WEECHAT_RC_OK
 
 
 def dechoder_cmd(data, buffer, args):
-    dechoded = api.dechode(args)
-    weechat.prnt(buffer, dechoded)
+    dechoded = "[dechoded] {}".format(api.dechode(args))
+    weechat.prnt(buffer, format_for_weechat(dechoded))
     return weechat.WEECHAT_RC_OK
 
 
