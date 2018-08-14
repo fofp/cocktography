@@ -12,10 +12,10 @@ from CPI import cocktography
 
 
 ENCHODE_MARKER = "\x034"
-DISPLAY_PARTIAL_ENCHODED_MESSAGES = True
+DISPLAY_PARTIAL_ENCHODED_MESSAGES = False
 
 
-RE_host = re.compile(r"(?<=\:).*(?= PRIVMSG)")
+RE_host = re.compile(r"(?<=,nick_)[^,]*(?=,|$)")
 
 
 api = cocktography.Cocktograph()
@@ -42,7 +42,7 @@ def autococktography(data, modifier, modifier_data, string):
     raw_message = unicode(string, 'utf-8')
     if "irc_raw" in modifier_data:
         return(string)
-    message = api.get_cockstring(raw_message)
+    message = api.get_cockstring(modifier_data)
     if not message:
         return(string)
     buffer = weechat.current_buffer()

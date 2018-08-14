@@ -95,13 +95,16 @@ class Cocktograph(object):
                                                                       self.CONT))
 
 
-    def enchode(self, text, passes=2, split_at=340, marker="\x0F"):
+    def enchode(self, text, passes=2, split_at=340,
+                return_list=False, marker="\x0F"):
         """Enchode a message.
 
         accepts:
             str text: String to enchode
             int passes: Number of base64 passes
             int split_at: Number of characters to split lines at
+            bool return_list: Default False, if True return a list
+                              instead of a string
             str marker: Marker for beginning of enchoded text
 
         returns:
@@ -120,7 +123,10 @@ class Cocktograph(object):
             lines = break_lines(cockstring, split_at)
             sep = " {}\n{} ".format(self.CONT, self.MARK)
             ret = "{} {} {}".format(self.START, sep.join(lines), self.STOP)
-            return(ret)
+            if return_list:
+                return(ret.split("\n"))
+            else:
+                return(ret)
 
     def dechode(self, text, limit=5, force_security=False,
                 ignore_invalid=True, marker="\x0F"):
