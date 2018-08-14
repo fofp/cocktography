@@ -77,6 +77,7 @@ def autococktography(data, modifier, modifier_data, string):
 
 
 def enchoder_cmd(data, buffer, args):
+    args = args.decode("utf-8")
     parser = argparse.ArgumentParser()
     parser.add_argument('--strokes', default=2, type=int)
     try:
