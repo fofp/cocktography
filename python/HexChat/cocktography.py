@@ -10,7 +10,7 @@ from CPI import cocktography
 
 __module_name__ = str("choder")
 __module_version__ = str("1.3")
-__module_description__ = str("Script that implements Cocktography for Hexchat")
+__module_description__ = str("Script that implements Cocktography for HexChat")
 
 events = ("Channel Message","Private Message", "Private Message to Dialog")
 
