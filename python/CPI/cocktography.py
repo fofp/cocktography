@@ -154,6 +154,7 @@ class Cocktograph(object):
         strokes = "?"
         if " " not in dechoded:
             for i in range(limit):
+                print(dechoded)
                 try:
                     dechoded = base64.decodestring(dechoded)
                     if i == 1:
@@ -164,8 +165,6 @@ class Cocktograph(object):
                         final_dechode = dechoded
                         break
                 except Exception as e:
-                    strokes = i
-                    final_dechode = dechoded
                     break
             result = to_unicode(final_dechode).lstrip(marker)
         else:
