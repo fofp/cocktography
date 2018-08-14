@@ -60,7 +60,7 @@ def autococktography(data, modifier, modifier_data, string):
             if DISPLAY_PARTIAL_ENCHODED_MESSAGES:
                 dechoded = "\x0315{}\x0F\n{}".format(enchoded, dechoded)
             formatted = raw_message.replace(message, dechoded)
-            print(formatted)
+            #print(formatted.encode("utf-8"))
             return(format_for_weechat(formatted))
         else:
             __COCKS[user] = history + [message]
