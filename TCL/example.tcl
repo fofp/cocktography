@@ -2,7 +2,7 @@
 #|*                Cocktography Example v8=D by Bang Ding Ow                        *|
 #\***********************************************************************************/
 
-source cocktography.tcl
+package require cocktography 1.0
 
 set testString "This is a test"
 
@@ -19,6 +19,7 @@ set test {}
 set testString "This is a longer test. You can tell it's longer because of the way it is. This simulates real text."
 set dongs [::cocktography::enchode $testString] 
 foreach dong $dongs {
+    #This simulates sending an enchoded message.
 	puts "Line: $dong"
 
 	#This simulates receiving an enchoded message. 
