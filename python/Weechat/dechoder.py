@@ -1,5 +1,7 @@
 #-*- coding: utf-8 -*-
 from __future__ import unicode_literals
+import argparse
+
 try:
     import regex as re
 except:
@@ -75,7 +77,16 @@ def autococktography(data, modifier, modifier_data, string):
 
 
 def enchoder_cmd(data, buffer, args):
-    enchoded = api.enchode(args[:150])
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--strokes', default=2, type=int)
+    try:
+        (opts, args) = parser.parse_known_args(args.split())
+    except SystemExit:
+        weechat.prnt('', 'Error: in "{}", invalid options.'.format(args))
+        return weechat.WEECHAT_RC_ERROR
+    opts = vars(opts)
+    text = " ".join(args)
+    enchoded = api.enchode(text, strokes=opts['strokes'])
     weechat.command(buffer, format_for_weechat(enchoded))
     return weechat.WEECHAT_RC_OK
 
