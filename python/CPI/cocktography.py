@@ -94,14 +94,13 @@ class Cocktograph(object):
                                                                       self.STOP,
                                                                       self.CONT))
 
-
-    def enchode(self, text, passes=2, split_at=340,
+    def enchode(self, text, strokes=2, split_at=340,
                 return_list=False, marker="\x0F"):
         """Enchode a message.
 
         accepts:
             str text: String to enchode
-            int passes: Number of base64 passes
+            int strokes: Number of base64 passes
             int split_at: Number of characters to split lines at
             bool return_list: Default False, if True return a list
                               instead of a string
@@ -111,10 +110,13 @@ class Cocktograph(object):
             Enchoded string, with newlines at split_lines
 
         """
-        text = marker + to_unicode(text)
-        text = text.encode("utf-8")
-        for _ in range(passes):
-            text = base64.encodestring(text).replace("\n", "")
+        if strokes > 0:
+            text = marker + to_unicode(text)
+            text = text.encode("utf-8")
+            for _ in range(strokes):
+                text = base64.encodestring(text).replace("\n", "")
+        else:
+            text = to_unicode(text).encode('ascii', 'replace').decode()
 
         cockstring = " ".join([self.dechoder_ring["in"][c] for c in text])
         if len(cockstring) < split_at:
@@ -128,8 +130,8 @@ class Cocktograph(object):
             else:
                 return(ret)
 
-    def dechode(self, text, limit=5, force_security=False,
-                ignore_invalid=True, marker="\x0F"):
+    def dechode(self, text, limit=10, force_security=False,
+                ignore_invalid=True, marker="\x0F", return_strokes=False):
         """Dechode a message.
 
         accepts:
@@ -149,17 +151,30 @@ class Cocktograph(object):
             symbols = [s for s in symbols if s in self.dechoder_ring["out"].keys()]
         dechoded = "".join([self.dechoder_ring["out"][w] for w in text.split()
                             if w not in self.CONTROL_CODES])
-        for _ in range(limit):
-            try:
-                dechoded = base64.decodestring(dechoded)
-                if _ == 1:
-                    final_dechode = dechoded
-                if to_unicode(dechoded).startswith(marker):
+        strokes = "?"
+        if " " not in dechoded:
+            for i in range(limit):
+                try:
+                    dechoded = base64.decodestring(dechoded)
+                    if i == 1:
+                        strokes = 2
+                        final_dechode = dechoded
+                    if to_unicode(dechoded).startswith(marker):
+                        strokes = i + 1
+                        final_dechode = dechoded
+                        break
+                except Exception as e:
+                    strokes = i
                     final_dechode = dechoded
                     break
-            except Exception as e:
-                break
-        return(to_unicode(final_dechode).lstrip(marker))
+            result = to_unicode(final_dechode).lstrip(marker)
+        else:
+            strokes = 0
+            result = dechoded
+        if return_strokes:
+            return(result, strokes)
+        else:
+            return(result)
 
     def get_cockstring(self, text):
         """Get cockstring from text."""
