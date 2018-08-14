@@ -14,7 +14,7 @@ if __name__ == '__main__' and __package__ is None:
 from CPI import cocktography
 
 
-ENCHODE_MARKER = "[{}\x0F]"
+ENCHODE_MARKER = "[{}\x0F] "
 DISPLAY_PARTIAL_ENCHODED_MESSAGES = True
 
 
@@ -62,7 +62,11 @@ def autococktography(data, modifier, modifier_data, string):
             dechoded, rounds = api.dechode(enchoded, return_rounds=True)
             if DISPLAY_PARTIAL_ENCHODED_MESSAGES:
                 dechoded = "\x0315{}\x0F\n{}".format(enchoded, dechoded)
-            formatted = ENCHODE_MARKER.format("\x0304" + str(rounds)) + raw_message.replace(message, dechoded)
+            if rounds > 0:
+                color = "\x0304"
+            else:
+                color = "\x0303"
+            formatted = ENCHODE_MARKER.format(color + str(rounds)) + raw_message.replace(message, dechoded)
             #print(formatted.encode("utf-8"))
             return(format_for_weechat(formatted))
         else:

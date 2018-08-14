@@ -153,16 +153,17 @@ class Cocktograph(object):
         dechoded = "".join([self.dechoder_ring["out"][w] for w in text.split()
                             if w not in self.CONTROL_CODES])
         if " " not in dechoded:
-            for _ in range(limit):
-                rounds = _
+            for i in range(limit):
+                rounds = i + 1
                 try:
                     dechoded = base64.decodestring(dechoded)
-                    if _ == 1:
+                    if i == 1:
                         final_dechode = dechoded
                     if to_unicode(dechoded).startswith(marker):
                         final_dechode = dechoded
                         break
                 except Exception as e:
+                    rounds = i - 1
                     final_dechode = dechoded
                     break
             result = to_unicode(final_dechode).lstrip(marker)
