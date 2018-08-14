@@ -157,14 +157,14 @@ class Cocktograph(object):
                 try:
                     dechoded = base64.decodestring(dechoded)
                     if i == 1:
-                        strokes = i + 1
+                        strokes = 2
                         final_dechode = dechoded
                     if to_unicode(dechoded).startswith(marker):
                         strokes = i + 1
                         final_dechode = dechoded
                         break
                 except Exception as e:
-                    strokes = i - 1
+                    strokes = i
                     final_dechode = dechoded
                     break
             result = to_unicode(final_dechode).lstrip(marker)
