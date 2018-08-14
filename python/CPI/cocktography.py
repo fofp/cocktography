@@ -94,7 +94,6 @@ class Cocktograph(object):
                                                                       self.STOP,
                                                                       self.CONT))
 
-
     def enchode(self, text, passes=2, split_at=340,
                 return_list=False, marker="\x0F"):
         """Enchode a message.
@@ -131,7 +130,7 @@ class Cocktograph(object):
             else:
                 return(ret)
 
-    def dechode(self, text, limit=5, force_security=False,
+    def dechode(self, text, limit=10, force_security=False,
                 ignore_invalid=True, marker="\x0F", return_rounds=False):
         """Dechode a message.
 
@@ -152,14 +151,16 @@ class Cocktograph(object):
             symbols = [s for s in symbols if s in self.dechoder_ring["out"].keys()]
         dechoded = "".join([self.dechoder_ring["out"][w] for w in text.split()
                             if w not in self.CONTROL_CODES])
+        rounds = "?"
         if " " not in dechoded:
             for i in range(limit):
-                rounds = i + 1
                 try:
                     dechoded = base64.decodestring(dechoded)
                     if i == 1:
+                        rounds = i + 1
                         final_dechode = dechoded
                     if to_unicode(dechoded).startswith(marker):
+                        rounds = i + 1
                         final_dechode = dechoded
                         break
                 except Exception as e:
