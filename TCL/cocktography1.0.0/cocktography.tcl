@@ -1,5 +1,5 @@
 #cocktography v1.0.0 by Vin
-package provide cocktography
+package provide cocktography 1.0
 
 namespace eval ::cocktography {
     namespace export enchode dechode
