@@ -152,11 +152,14 @@ class Cocktograph(object):
         for _ in range(limit):
             try:
                 dechoded = base64.decodestring(dechoded)
+                if _ == 1:
+                    final_dechode = dechoded
                 if to_unicode(dechoded).startswith(marker):
+                    final_dechode = dechoded
                     break
             except Exception as e:
                 break
-        return(to_unicode(dechoded).lstrip(marker))
+        return(to_unicode(final_dechode).lstrip(marker))
 
     def get_cockstring(self, text):
         """Get cockstring from text."""
