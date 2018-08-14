@@ -94,13 +94,13 @@ class Cocktograph(object):
                                                                       self.STOP,
                                                                       self.CONT))
 
-    def enchode(self, text, passes=2, split_at=340,
+    def enchode(self, text, strokes=2, split_at=340,
                 return_list=False, marker="\x0F"):
         """Enchode a message.
 
         accepts:
             str text: String to enchode
-            int passes: Number of base64 passes
+            int strokes: Number of base64 passes
             int split_at: Number of characters to split lines at
             bool return_list: Default False, if True return a list
                               instead of a string
@@ -110,10 +110,10 @@ class Cocktograph(object):
             Enchoded string, with newlines at split_lines
 
         """
-        if passes > 0:
+        if strokes > 0:
             text = marker + to_unicode(text)
             text = text.encode("utf-8")
-            for _ in range(passes):
+            for _ in range(strokes):
                 text = base64.encodestring(text).replace("\n", "")
         else:
             text = to_unicode(text).encode('ascii', 'replace').decode()
@@ -131,7 +131,7 @@ class Cocktograph(object):
                 return(ret)
 
     def dechode(self, text, limit=10, force_security=False,
-                ignore_invalid=True, marker="\x0F", return_rounds=False):
+                ignore_invalid=True, marker="\x0F", return_strokes=False):
         """Dechode a message.
 
         accepts:
@@ -151,28 +151,28 @@ class Cocktograph(object):
             symbols = [s for s in symbols if s in self.dechoder_ring["out"].keys()]
         dechoded = "".join([self.dechoder_ring["out"][w] for w in text.split()
                             if w not in self.CONTROL_CODES])
-        rounds = "?"
+        strokes = "?"
         if " " not in dechoded:
             for i in range(limit):
                 try:
                     dechoded = base64.decodestring(dechoded)
                     if i == 1:
-                        rounds = i + 1
+                        strokes = i + 1
                         final_dechode = dechoded
                     if to_unicode(dechoded).startswith(marker):
-                        rounds = i + 1
+                        strokes = i + 1
                         final_dechode = dechoded
                         break
                 except Exception as e:
-                    rounds = i - 1
+                    strokes = i - 1
                     final_dechode = dechoded
                     break
             result = to_unicode(final_dechode).lstrip(marker)
         else:
-            rounds = 0
+            strokes = 0
             result = dechoded
-        if return_rounds:
-            return(result, rounds)
+        if return_strokes:
+            return(result, strokes)
         else:
             return(result)
 

@@ -59,7 +59,7 @@ def autococktography(data, modifier, modifier_data, string):
             else:
                 enchoded = " ".join(history + [message])
             __COCKS[user] = []
-            dechoded, rounds = api.dechode(enchoded, return_rounds=True)
+            dechoded, rounds = api.dechode(enchoded, return_strokes=True)
             if DISPLAY_PARTIAL_ENCHODED_MESSAGES:
                 dechoded = "\x0315{}\x0F\n{}".format(enchoded, dechoded)
             if rounds > 0:
