@@ -1,6 +1,9 @@
 #-*- coding: utf-8 -*-
 from __future__ import unicode_literals
-import regex as re
+try:
+    import regex as re
+except:
+    import re
 try:
     import weechat
 except:
