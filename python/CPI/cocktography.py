@@ -7,6 +7,7 @@ try:
 except:
     import re
 import os
+import textwrap
 
 
 COCKTOGRAPIC_MAP = os.path.join(os.path.dirname(os.path.realpath(__file__)),
@@ -22,36 +23,6 @@ def to_unicode(strng):
     if isinstance(strng, unicode):
         return strng
     return strng.decode('utf-8', 'replace')
-
-
-def chunks(s, n):
-    """Produce `n`-character chunks from `s`."""
-    for start in range(0, len(s), n):
-        yield s[start:start+n]
-
-
-def break_lines(text, split_at=340):
-    """Format a space-separated string into a list of lines.
-
-    accepts
-        test: list or space-separated string of symbols
-        split_at: amount of characters per line, including spaces,
-                  to split at
-    returns
-         list of space-separated strings, shorter than split_at
-    """
-    if type(text) == str or type(text) == unicode:
-        text = text.split(" ")
-    lines = []
-    current_line = []
-    for symb in text:
-        new_line = " ".join(current_line+[symb])
-        if len(new_line) > split_at:
-            lines.append(" ".join(current_line))
-            current_line = []
-        current_line.append(symb)
-    lines.append(" ".join(current_line))
-    return lines
 
 
 class Cocktograph(object):
@@ -127,7 +98,8 @@ class Cocktograph(object):
         if len(cockstring) < split_at:
             return(" ".join([self.START, cockstring, self.STOP]))
         else:
-            lines = break_lines(cockstring, split_at)
+            lines = textwrap.wrap(cockstring, split_at, break_long_words=False,
+                                  break_on_hyphens=False)
             sep = " {}\n{} ".format(self.CONT, self.MARK)
             ret = "{} {} {}".format(self.START, sep.join(lines), self.STOP)
             if return_list:
