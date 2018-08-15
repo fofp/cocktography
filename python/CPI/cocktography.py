@@ -82,6 +82,7 @@ class Cocktograph(object):
 
         self.dechoder_ring["out"][" "] = " "
         self.dechoder_ring["out"]["8mD"] = " "
+        self.dechoder_ring["out"]["8wm===D"] = "\x0F"
         self.dechoder_ring["in"] = {char: dick
                                     for dick, char
                                     in self.dechoder_ring["out"].iteritems()}
@@ -114,13 +115,13 @@ class Cocktograph(object):
             Enchoded string, with newlines at split_lines
 
         """
+        text = marker + to_unicode(text)
         if strokes > 0:
-            text = marker + to_unicode(text)
             text = text.encode("utf-8")
             for _ in range(strokes):
                 text = base64.encodestring(text).replace("\n", "")
         else:
-            text = to_unicode(text).encode('ascii', 'replace').decode()
+            text = text.encode('ascii', 'replace').decode()
 
         cockstring = " ".join([self.dechoder_ring["in"][c] for c in text])
         if len(cockstring) < split_at:
@@ -159,25 +160,21 @@ class Cocktograph(object):
             symbols = [s for s in symbols if s in self.dechoder_ring["out"].keys()]
         dechoded = "".join([self.dechoder_ring["out"][w] for w in text.split()
                             if w not in self.CONTROL_CODES])
-        strokes = "?"
-        if " " not in dechoded:
-            final_dechode = dechoded
-            for i in range(limit):
-                try:
-                    dechoded = base64.decodestring(dechoded)
-                    if i == 1:
-                        strokes = 2
-                        final_dechode = dechoded
-                    if to_unicode(dechoded).startswith(marker):
-                        strokes = i + 1
-                        final_dechode = dechoded
-                        break
-                except Exception as e:
+        strokes = 0
+        final_dechode = dechoded
+        for i in range(limit):
+            try:
+                if to_unicode(dechoded).startswith(marker):
+                    strokes = i
+                    final_dechode = dechoded
                     break
-            result = to_unicode(final_dechode).lstrip(marker)
-        else:
-            strokes = 0
-            result = dechoded
+                if i == 2:
+                    strokes = 2
+                    final_dechode = dechoded
+                dechoded = base64.decodestring(dechoded)
+            except Exception as e:
+                break
+        result = to_unicode(final_dechode).lstrip(marker)
         return(result, strokes)
 
     def get_cockstring(self, text):
@@ -185,4 +182,3 @@ class Cocktograph(object):
         text = to_unicode(text)
         result = self.RE_cocks.search(text)
         return(result.group(0) if result else None)
-
