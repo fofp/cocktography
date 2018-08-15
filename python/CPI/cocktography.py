@@ -13,6 +13,10 @@ COCKTOGRAPIC_MAP = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                 "dechoder_ring")
 
 
+class InvalidCockstring(Exception):
+    pass
+
+
 def to_unicode(strng):
     """Convert a utf-8 encoded string to a Unicode."""
     if isinstance(strng, unicode):
@@ -130,8 +134,8 @@ class Cocktograph(object):
             else:
                 return(ret)
 
-    def dechode(self, text, limit=10, force_security=False,
-                ignore_invalid=True, marker="\x0F", return_strokes=False):
+    def dechode(self, text, limit=15, force_security=False,
+                ignore_invalid=True, marker="\x0F"):
         """Dechode a message.
 
         accepts:
@@ -142,10 +146,14 @@ class Cocktograph(object):
                 START Y29ja3M= STOP
             bool ignore_invalid: If False, error out on invalid symbols.
         returns:
-            Unencoded string
+            tuple (Unencoded string, strokes)
 
         """
         text = to_unicode(text)
+        if not text.startswith(self.START):
+            raise InvalidCockstring("{} does not start with {}".format(text, self.START))
+        if not text.endswith(self.STOP):
+            raise InvalidCockstring("{} does not end with {}".format(text, self.STOP))
         symbols = text.split()
         if ignore_invalid:
             symbols = [s for s in symbols if s in self.dechoder_ring["out"].keys()]
@@ -153,8 +161,8 @@ class Cocktograph(object):
                             if w not in self.CONTROL_CODES])
         strokes = "?"
         if " " not in dechoded:
+            final_dechode = dechoded
             for i in range(limit):
-                print(dechoded)
                 try:
                     dechoded = base64.decodestring(dechoded)
                     if i == 1:
@@ -170,13 +178,11 @@ class Cocktograph(object):
         else:
             strokes = 0
             result = dechoded
-        if return_strokes:
-            return(result, strokes)
-        else:
-            return(result)
+        return(result, strokes)
 
     def get_cockstring(self, text):
         """Get cockstring from text."""
         text = to_unicode(text)
         result = self.RE_cocks.search(text)
         return(result.group(0) if result else None)
+
