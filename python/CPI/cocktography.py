@@ -13,6 +13,10 @@ COCKTOGRAPIC_MAP = os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                 "dechoder_ring")
 
 
+class InvalidCockstring(Exception):
+    pass
+
+
 def to_unicode(strng):
     """Convert a utf-8 encoded string to a Unicode."""
     if isinstance(strng, unicode):
@@ -78,6 +82,7 @@ class Cocktograph(object):
 
         self.dechoder_ring["out"][" "] = " "
         self.dechoder_ring["out"]["8mD"] = " "
+        self.dechoder_ring["out"]["8wm===D"] = "\x0F"
         self.dechoder_ring["in"] = {char: dick
                                     for dick, char
                                     in self.dechoder_ring["out"].iteritems()}
@@ -110,13 +115,13 @@ class Cocktograph(object):
             Enchoded string, with newlines at split_lines
 
         """
+        text = marker + to_unicode(text)
         if strokes > 0:
-            text = marker + to_unicode(text)
             text = text.encode("utf-8")
             for _ in range(strokes):
                 text = base64.encodestring(text).replace("\n", "")
         else:
-            text = to_unicode(text).encode('ascii', 'replace').decode()
+            text = text.encode('ascii', 'replace').decode()
 
         cockstring = " ".join([self.dechoder_ring["in"][c] for c in text])
         if len(cockstring) < split_at:
@@ -130,8 +135,8 @@ class Cocktograph(object):
             else:
                 return(ret)
 
-    def dechode(self, text, limit=10, force_security=False,
-                ignore_invalid=True, marker="\x0F", return_strokes=False):
+    def dechode(self, text, limit=15, force_security=False,
+                ignore_invalid=True, marker="\x0F"):
         """Dechode a message.
 
         accepts:
@@ -142,37 +147,35 @@ class Cocktograph(object):
                 START Y29ja3M= STOP
             bool ignore_invalid: If False, error out on invalid symbols.
         returns:
-            Unencoded string
+            tuple (Unencoded string, strokes)
 
         """
         text = to_unicode(text)
+        if not text.startswith(self.START):
+            raise InvalidCockstring("{} does not start with {}".format(text, self.START))
+        if not text.endswith(self.STOP):
+            raise InvalidCockstring("{} does not end with {}".format(text, self.STOP))
         symbols = text.split()
         if ignore_invalid:
             symbols = [s for s in symbols if s in self.dechoder_ring["out"].keys()]
         dechoded = "".join([self.dechoder_ring["out"][w] for w in text.split()
                             if w not in self.CONTROL_CODES])
-        strokes = "?"
-        if " " not in dechoded:
-            for i in range(limit):
-                try:
-                    dechoded = base64.decodestring(dechoded)
-                    if i == 1:
-                        strokes = 2
-                        final_dechode = dechoded
-                    if to_unicode(dechoded).startswith(marker):
-                        strokes = i + 1
-                        final_dechode = dechoded
-                        break
-                except Exception as e:
+        strokes = 0
+        final_dechode = dechoded
+        for i in range(limit):
+            try:
+                if to_unicode(dechoded).startswith(marker):
+                    strokes = i
+                    final_dechode = dechoded
                     break
-            result = to_unicode(final_dechode).lstrip(marker)
-        else:
-            strokes = 0
-            result = dechoded
-        if return_strokes:
-            return(result, strokes)
-        else:
-            return(result)
+                if i == 2:
+                    strokes = 2
+                    final_dechode = dechoded
+                dechoded = base64.decodestring(dechoded)
+            except Exception as e:
+                break
+        result = to_unicode(final_dechode).lstrip(marker)
+        return(result, strokes)
 
     def get_cockstring(self, text):
         """Get cockstring from text."""

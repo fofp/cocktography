@@ -16,8 +16,8 @@ if __name__ == '__main__' and __package__ is None:
 from CPI import cocktography
 
 
-ENCHODE_MARKER = "[{}\x0F] "
-DISPLAY_PARTIAL_ENCHODED_MESSAGES = True
+ZERO_STROKE_FORMAT = "{strokes}🐓 {prefix}\t\x0314{cockstring}\x0F\n{dechoded}"
+MULTI_STROKE_FORMAT = "{strokes}🍆 {prefix}\t\x0314{cockstring}\x0F\n{dechoded}"
 
 
 RE_host = re.compile(r"(?<=,nick_)[^,]*(?=,|$)")
@@ -47,32 +47,32 @@ def autococktography(data, modifier, modifier_data, string):
     raw_message = unicode(string, 'utf-8')
     if "irc_raw" in modifier_data:
         return(string)
-    message = api.get_cockstring(raw_message)
-    if not message:
+    prefix, message = raw_message.split("\t", 1)
+    cockstring = api.get_cockstring(message)
+    if not cockstring:
         return(string)
-    buffer = weechat.current_buffer()
     user = RE_host.search(modifier_data)
     user = user.group(0) if user else "null"
-    if message.startswith(api.START) or message.startswith(api.MARK):
+    if cockstring.startswith(api.START) or cockstring.startswith(api.MARK):
         history = __COCKS.get(user, [])
-        if message.endswith(api.STOP):
-            if message.startswith(api.START): # we have a single line enchoded message
-                enchoded = message
+        if cockstring.endswith(api.STOP):
+            if cockstring.startswith(api.START): # we have a single line enchoded message
+                enchoded = cockstring
             else:
-                enchoded = " ".join(history + [message])
+                enchoded = " ".join(history + [cockstring])
             __COCKS[user] = []
-            dechoded, rounds = api.dechode(enchoded, return_strokes=True)
-            if DISPLAY_PARTIAL_ENCHODED_MESSAGES:
-                dechoded = "\x0315{}\x0F\n{}".format(enchoded, dechoded)
-            if rounds > 0:
-                color = "\x0304"
+            dechoded, strokes = api.dechode(enchoded)
+
+            dechoded_with_message = message.replace(cockstring, dechoded)
+            if strokes > 0:
+                fstring = MULTI_STROKE_FORMAT
             else:
-                color = "\x0303"
-            formatted = ENCHODE_MARKER.format(color + str(rounds)) + raw_message.replace(message, dechoded)
-            #print(formatted.encode("utf-8"))
+                fstring = ZERO_STROKE_FORMAT
+            formatted = fstring.format(strokes=strokes, prefix=prefix, cockstring=enchoded,
+                                       dechoded=dechoded_with_message)
             return(format_for_weechat(formatted))
         else:
-            __COCKS[user] = history + [message]
+            __COCKS[user] = history + [cockstring]
             return ""
 
 
@@ -115,3 +115,4 @@ if __name__ == "__main__":
         "Your message",
         "",
         "enchoder_cmd", "")
+
