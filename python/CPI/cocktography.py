@@ -154,7 +154,6 @@ class Cocktograph(object):
         strokes = "?"
         if " " not in dechoded:
             for i in range(limit):
-                print(dechoded)
                 try:
                     dechoded = base64.decodestring(dechoded)
                     if i == 1:
