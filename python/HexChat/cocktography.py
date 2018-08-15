@@ -31,13 +31,13 @@ def choder_cb(word, word_eol, userdata, attr):
             history = buffer[word[0]]
         if message.endswith(choder.STOP):
             if message.startswith(choder.START): # we have a single line enchoded message
-                dechoded = choder.dechode(message)
+                dechoded, _ = choder.dechode(message)
                 formatted = RE_cocks.sub(dechoded, word[1])
                 hexchat.emit_print("Channel Message",'\0034\002\037' + word[0] + '\0034\002\037',formatted,"")
                 return hexchat.EAT_HEXCHAT
             else:
                 enchoded = "{} {}".format(history, message) if history else message
-                dechoded = choder.dechode(enchoded)
+                dechoded, _ = choder.dechode(enchoded)
                 formatted = RE_cocks.sub(dechoded, word[1])
                 del buffer[word[0]]
                 hexchat.emit_print("Channel Message",'\0034\002\037' + word[0] + '\0034\002\037',formatted,"")
@@ -57,11 +57,11 @@ def enchode_cb(word, word_eol, userdata):
         hexchat.get_context().command('say ' + dongs)
     del buffer["input"]
     hexchat.emit_print("Channel Message",'\0034\002\037' + hexchat.get_info('nick') + '\0034\002\037',input,"")
-    
+
     return hexchat.EAT_HEXCHAT
 
 def dechode_cb(word, word_eol, userdata):
-    hexchat.prnt(choder.dechode(word[1])) 
+    hexchat.prnt(choder.dechode(word[1])[0])
     return hexchat.EAT_HEXCHAT
 
 hexchat.hook_command("enchode",enchode_cb)

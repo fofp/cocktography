@@ -14,10 +14,9 @@ __module_description__ = str("Script that implements Cocktography for XChat")
 
 events = ("Channel Message","Private Message", "Private Message to Dialog")
 
-cocktographic_map = ".dechoder_ring"
-RE_cocks = re.compile(r"({}|{}).*({}|{})".format(choder.START, choder.MARK, choder.STOP, choder.CONT))
-
 choder = cocktography.Cocktograph()
+
+RE_cocks = re.compile(r"({}|{}).*({}|{})".format(choder.START, choder.MARK, choder.STOP, choder.CONT))
 buffer = {}
 
 def cocktography_cb(word, word_eol, userdata):
@@ -32,13 +31,13 @@ def cocktography_cb(word, word_eol, userdata):
             history = buffer[word[0]]
         if message.endswith(choder.STOP):
             if message.startswith(choder.START): # we have a single line enchoded message
-                dechoded = choder.dechode(message)
+                dechoded, _ = choder.dechode(message)
                 formatted = RE_cocks.sub(dechoded, word[1])
                 xchat.emit_print("Channel Message",'\0034\002\037' + word[0] + '\0034\002\037',formatted,"")
                 return xchat.EAT_XCHAT
             else:
                 enchoded = "{} {}".format(history, message) if history else message
-                dechoded = choder.dechode(enchoded)
+                dechoded, _ = choder.dechode(enchoded)
                 formatted = RE_cocks.sub(dechoded, word[1])
                 del buffer[word[0]]
                 xchat.emit_print("Channel Message",'\0034\002\037' + word[0] + '\0034\002\037',formatted,"")
@@ -58,11 +57,11 @@ def enchode_cb(word, word_eol, userdata):
         xchat.get_context().command('say ' + dongs)
     del buffer["input"]
     xchat.emit_print("Channel Message",'\0034\002\037' + xchat.get_info('nick') + '\0034\002\037',input,"")
-    
+
     return xchat.EAT_XCHAT
 
 def dechode_cb(word, word_eol, userdata):
-    xchat.prnt(choder.dechode(word[1])) 
+    xchat.prnt(choder.dechode(word[1])[0])
     return xchat.EAT_XCHAT
 
 xchat.hook_command("enchode",enchode_cb)
