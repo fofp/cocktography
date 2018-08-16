@@ -16,8 +16,10 @@ if __name__ == '__main__' and __package__ is None:
 from CPI import cocktography
 
 
-ZERO_STROKE_FORMAT = "{strokes}🐓 {prefix}\t\x0314{cockstring}\x0F\n{dechoded}"
-MULTI_STROKE_FORMAT = "{strokes}🍆 {prefix}\t\x0314{cockstring}\x0F\n{dechoded}"
+ZERO_STROKE_FORMAT = "{strokes}🐓 {prefix}\t\x0314{cockstring}\x0F\t{dechoded}"
+MULTI_STROKE_FORMAT = "{strokes}🍆 {prefix}\t\x0314{cockstring}\x0F\t{dechoded}"
+
+ALLOW_MIXED_SECURITY = True
 
 
 RE_host = re.compile(r"(?<=,nick_)[^,]*(?=,|$)")
@@ -45,10 +47,12 @@ def format_for_weechat(text, colorize_text=True):
 def autococktography(data, modifier, modifier_data, string):
     global api, __COCKS
     raw_message = unicode(string, 'utf-8')
-    if "irc_raw" in modifier_data:
+    if "irc_raw" in modifier_data or "\t" not in raw_message:
         return(string)
     prefix, message = raw_message.split("\t", 1)
     cockstring = api.get_cockstring(message)
+    if not ALLOW_MIXED_SECURITY and cockstring is not message:
+        return(string)
     if not cockstring:
         return(string)
     user = RE_host.search(modifier_data)
@@ -68,7 +72,8 @@ def autococktography(data, modifier, modifier_data, string):
                 fstring = MULTI_STROKE_FORMAT
             else:
                 fstring = ZERO_STROKE_FORMAT
-            formatted = fstring.format(strokes=strokes, prefix=prefix, cockstring=enchoded,
+            formatted = fstring.format(strokes=strokes, prefix=prefix,
+                                       cockstring=message.replace(cockstring, enchoded),
                                        dechoded=dechoded_with_message)
             return(format_for_weechat(formatted))
         else:
@@ -99,7 +104,7 @@ def dechoder_cmd(data, buffer, args):
 
 
 if __name__ == "__main__":
-    weechat.register("dechoder", "Dechoder", "0.1", "MIT", "Test script", "", "")
+    weechat.register("dechoder", "Dechoder", "0.1.1", "MIT", "Test script", "", "")
     weechat.hook_modifier("weechat_print", "autococktography", "")
 
     hook = weechat.hook_command("dechode",
@@ -115,4 +120,3 @@ if __name__ == "__main__":
         "Your message",
         "",
         "enchoder_cmd", "")
-
