@@ -1,9 +1,13 @@
 #-*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import itertools
+import ConfigParser
 import base64
 import StringIO
-import regex as re
+try:
+    import regex as re
+except:
+    import re
 import hexchat
 import os
 from CPI import cocktography
@@ -12,7 +16,12 @@ __module_name__ = str("choder")
 __module_version__ = str("1.3")
 __module_description__ = str("Script that implements Cocktography for HexChat")
 
-events = ("Channel Message","Private Message", "Private Message to Dialog")
+events = ("Channel Message", "Private Message", "Private Message to Dialog")
+
+config_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'cocktography.ini');
+config = ConfigParser.ConfigParser()
+config.read(config_file);
+nick_format = config.get('default', 'nick_format').decode('string_escape');
 
 buffer = {}
 
@@ -33,14 +42,14 @@ def choder_cb(word, word_eol, userdata, attr):
             if message.startswith(choder.START): # we have a single line enchoded message
                 dechoded, _ = choder.dechode(message)
                 formatted = RE_cocks.sub(dechoded, word[1])
-                hexchat.emit_print("Channel Message",'\0034\002\037' + word[0] + '\0034\002\037',formatted,"")
+                hexchat.emit_print("Channel Message", nick_format % word[0], formatted, "")
                 return hexchat.EAT_HEXCHAT
             else:
                 enchoded = "{} {}".format(history, message) if history else message
                 dechoded, _ = choder.dechode(enchoded)
                 formatted = RE_cocks.sub(dechoded, word[1])
                 del buffer[word[0]]
-                hexchat.emit_print("Channel Message",'\0034\002\037' + word[0] + '\0034\002\037',formatted,"")
+                hexchat.emit_print("Channel Message", nick_format % word[0], formatted, "")
                 return hexchat.EAT_HEXCHAT
         else:
             buffer[word[0]] = "{} {}".format(history, message) if history else message
@@ -56,7 +65,7 @@ def enchode_cb(word, word_eol, userdata):
     for dongs in buffer["input"]:
         hexchat.get_context().command('say ' + dongs)
     del buffer["input"]
-    hexchat.emit_print("Channel Message",'\0034\002\037' + hexchat.get_info('nick') + '\0034\002\037',input,"")
+    hexchat.emit_print("Channel Message", nick_format % hexchat.get_info('nick'), input, "")
 
     return hexchat.EAT_HEXCHAT
 
