@@ -42,14 +42,14 @@ def choder_cb(word, word_eol, userdata, attr):
             if message.startswith(choder.START): # we have a single line enchoded message
                 dechoded, _ = choder.dechode(message)
                 formatted = RE_cocks.sub(dechoded, word[1])
-                hexchat.emit_print("Channel Message", nick_format % word[0], formatted, "")
+                hexchat.emit_print("Channel Message", nick_format % word[0], formatted.encode('utf-8'), "")
                 return hexchat.EAT_HEXCHAT
             else:
                 enchoded = "{} {}".format(history, message) if history else message
                 dechoded, _ = choder.dechode(enchoded)
                 formatted = RE_cocks.sub(dechoded, word[1])
                 del buffer[word[0]]
-                hexchat.emit_print("Channel Message", nick_format % word[0], formatted, "")
+                hexchat.emit_print("Channel Message", nick_format % word[0], formatted.encode('utf-8'), "")
                 return hexchat.EAT_HEXCHAT
         else:
             buffer[word[0]] = "{} {}".format(history, message) if history else message

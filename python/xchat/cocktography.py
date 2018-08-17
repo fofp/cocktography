@@ -33,14 +33,14 @@ def cocktography_cb(word, word_eol, userdata):
             if message.startswith(choder.START): # we have a single line enchoded message
                 dechoded, _ = choder.dechode(message)
                 formatted = RE_cocks.sub(dechoded, word[1])
-                xchat.emit_print("Channel Message",'\0034\002\037' + word[0] + '\0034\002\037',formatted,"")
+                xchat.emit_print("Channel Message",'\0034\002\037' + word[0] + '\0034\002\037',formatted.encode('utf-8'),"")
                 return xchat.EAT_XCHAT
             else:
                 enchoded = "{} {}".format(history, message) if history else message
                 dechoded, _ = choder.dechode(enchoded)
                 formatted = RE_cocks.sub(dechoded, word[1])
                 del buffer[word[0]]
-                xchat.emit_print("Channel Message",'\0034\002\037' + word[0] + '\0034\002\037',formatted,"")
+                xchat.emit_print("Channel Message",'\0034\002\037' + word[0] + '\0034\002\037',formatted.encode('utf-8'),"")
                 return xchat.EAT_XCHAT
         else:
             buffer[word[0]] = "{} {}".format(history, message) if history else message
