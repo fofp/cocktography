@@ -18,16 +18,22 @@ set ::cocktography::cont [dict get $dick Enchode cont]
 set ::cocktography::term [dict get $dick Enchode term]
 
 proc ::cocktography::enchode { message {strokes 2} } {
-    puts "Strokes: $strokes"
 	global dick
 	set newstring [dict get $dick Enchode start]
 	
 	set message \x0f$message
-	
+	set last $message
 	for {set i 0 } { $i < $strokes} {incr i} {
-		set message [binary encode base64 $message]
+		set message [binary encode base64 $last]
+		if {[string length $message] > 280} {
+			#Auto destroke the message if it's getting too large
+			set message $last
+			set strokes $i 
+			break
+		}
+		set last $message
     }
-		
+	lappend multidicks $strokes
 	foreach c [split $message {}] {
 	    if [string is space $c] {
 			set c "%s"
