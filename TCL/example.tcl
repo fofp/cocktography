@@ -2,7 +2,7 @@
 #|*                Cocktography Example v8=D by Bang Ding Ow                        *|
 #\***********************************************************************************/
 
-package require cocktography 1.0
+package require cocktography 1.1
 
 set testString "This is a test"
 
