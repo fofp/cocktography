@@ -14,7 +14,7 @@ be conservative in what you do, be liberal in what you accept from others.
 A cocktographic message consists of a cockchain of cockblocks; that is a
 chain of one or more block messages. Each cockblock contains two kontol
 chodes: a begin chode and an end chode. These kontol chodes surround one or
-more cyphallic chodes. One or more spaces, codepoint `0x20`, separate chodes.
+more cyphallic chodes. One or more spaces, code point `0x20`, separate chodes.
 A valid cockblock consists only of valid chodes separated by spaces.
 
 If the begin kontol chode, the cyphallic chode(s), and the end kontol chode
