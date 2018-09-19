@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 start
 8=wm=D
 stop
@@ -6,3 +7,13 @@ cont
 8=ww=D
 mark
 8wmD
+=======
+8=wm=D
+START
+8=mw=D
+STOP
+8=ww=D
+CONT
+8wmD
+MARK
+>>>>>>> Stashed changes
