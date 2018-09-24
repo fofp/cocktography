@@ -2,9 +2,13 @@ import itertools
 import os
 import random
 import re
+import textwrap
 from enum import Enum
 
-class InvalidCockstring(Exception):
+class ChodeError(ValueError):
+    pass
+
+class CockblockError(ValueError):
     pass
 
 def _anonymous(cls):
@@ -31,6 +35,8 @@ class Cocktography(object):
     _DEFAULT_DIGRAMS_FILENAME = \
         os.path.join(os.path.dirname(os.path.realpath(__file__)),
                                      "rodsetta_stone.txt")
+    ESCAPE_SENTINEL = b"\x0F"
+    SEPARATOR = b" "
 
     def __init__(self,
                  kontol_chodes_filename = _DEFAULT_KONTOL_CHODES_FILENAME,
@@ -56,24 +62,26 @@ class Cocktography(object):
         @_anonymous
         class KONTOL_CHODES:
             START = self._kontol_to_chode["START"]
-            STOP  = self._kontol_to_chode["STOP"]
-            MARK  = self._kontol_to_chode["MARK"]
-            CONT  = self._kontol_to_chode["CONT"]
+            STOP = self._kontol_to_chode["STOP"]
+            MARK = self._kontol_to_chode["MARK"]
+            CONT = self._kontol_to_chode["CONT"]
             FROM_COCKBLOCK_TYPE = {
                 CockblockType.singleton: (START, STOP),
                 CockblockType.initial: (START, CONT),
                 CockblockType.intermediate: (MARK, CONT),
-                CockblockType.final: (MARK, STOP),
-            }
-            TO_COCKBLOCK_TYPE = {chodes: type
-                                 for type, chodes
-                                 in FROM_COCKBLOCK_TYPE.items()}
+                CockblockType.final: (MARK, STOP)}
+            TO_COCKBLOCK_TYPE = {
+                chodes: type for type, chodes in FROM_COCKBLOCK_TYPE.items()}
             BEGINNING = (START, MARK)
             ENDING = (CONT, STOP)
         self.KONTOL_CHODES = KONTOL_CHODES
-        self._RE_COCKBLOCKS = re.compile(r"({}).*({})".format(
+        self.COCKBLOCK_PADDING = len(max(KONTOL_CHODES.BEGINNING, key=len)) \
+            + len(max(KONTOL_CHODES.ENDING, key=len))
+        self._RE_COCKBLOCKS = re.compile(r"({0}){2}(.*){2}({1})".format(
                 r"|".join(map(re.escape, KONTOL_CHODES.BEGINNING)),
-                r"|".join(map(re.escape, KONTOL_CHODES.ENDING))))
+                r"|".join(map(re.escape, KONTOL_CHODES.ENDING)),
+                re.escape(self.SEPARATOR)))
+        self._RE_NONDESTROKEABLE = re.compile(r"[^+/=0-9A-Za-z]")
 
     def _chodes2bytes(self, chodes, tolerant=True):
         result = bytearray()
@@ -85,10 +93,10 @@ class Cocktography(object):
                 result.append(digram >> 8)
                 result.append(digram & 0xFF)
             elif not tolerant:
-                raise InvalidCockstring("Unknown symbol: {}".format(chode))
+                raise ChodeError("Unknown symbol: {}".format(chode))
         return result
 
-    def _bytes2chodes(self, byte_input, mode, varied_unigram_chance = 0.5):
+    def _bytes2chodes(self, byte_input, mode, varied_unigram_chance=0.5):
         result = list()
         if mode == CyphallicMethod.unigram:
             for byte in byte_input:
@@ -116,24 +124,55 @@ class Cocktography(object):
                     if prev is None:
                         prev = byte
                     else:
-                        result.append(self._digram_to_chode[(prev << 8) | byte])
+                        result.append(
+                            self._digram_to_chode[(prev << 8) | byte])
                         prev = None
             if prev is not None:
                 result.append(self._unigram_to_chode[prev])
         return result
 
-    def bytes2chodes(self, byte_input, mode=CyphallicMethod.digram):
-        return b" ".join(self._bytes2chodes(bytearray(byte_input), mode))
+    def cyphallicize(self, byte_input, mode):
+        return self.SEPARATOR.join(
+            self._bytes2chodes(bytearray(byte_input), mode))
 
-    def chodes2bytes(self, chodes):
+    def decyphallicize(self, chodes):
         return self._chodes2bytes(chodes.split())
 
-    def find_cockblock(self, byte_input):
-        match = self._RE_COCKBLOCKS.search(byte_input)
+    def stroke(self, text, count):
+        text = self.ESCAPE_SENTINEL + text
+        while count > 0:
+            text = text.encode('base64')
+            count -= 1
+        return text
+
+    def destroke(self, text):
+        count = 0
+        while (len(text) > 0
+                and text[0] != self.ESCAPE_SENTINEL
+                and len(text) % 4 == 0
+                and self._RE_NONDESTROKEABLE.search(text) is None):
+            text = text.decode('base64')
+            count += 1
+        return text, count
+
+    def find_cockblock(self, text):
+        match = self._RE_COCKBLOCKS.search(text)
         if match:
             groups = match.groups()
-            return (match.start(),
-                    match.end(),
-                    self.KONTOL_CHODES.TO_COCKBLOCK_TYPE[groups])
+            return (match.span(), match.span(2),
+                self.KONTOL_CHODES.TO_COCKBLOCK_TYPE[groups[0::2]])
         else:
             return None
+
+    def make_cockchain(self, chodes, cockblock_size):
+        lines = textwrap.wrap(
+            chodes,
+            cockblock_size - self.COCKBLOCK_PADDING,
+            break_on_hyphens=False,
+            break_long_words=False,
+            expand_tabs=False)
+        sep = self.SEPARATOR + self.KONTOL_CHODES.CONT + b'\n' \
+            + self.KONTOL_CHODES.MARK + self.SEPARATOR
+        ret = self.KONTOL_CHODES.START + self.SEPARATOR + sep.join(lines) \
+            + self.SEPARATOR + self.KONTOL_CHODES.STOP
+        return ret.splitlines()
