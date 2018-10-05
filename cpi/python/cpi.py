@@ -35,11 +35,11 @@ class CockblockType:
 
 class Cocktography(object):
     _DEFAULT_PATH = os.path.dirname(os.path.realpath(__file__))
-    _DEFAULT_KONTOL_CHODES_FILENAME = "kontol_chodes.txt"
-    _DEFAULT_THIN_CHODE_FILENAME = "cock_bytes.txt"
-    _DEFAULT_WIDE_CHODE_FILENAME = "rodsetta_stone.txt"
-    ESCAPE_SENTINEL = b"\x0F"
-    SEPARATOR = b" "
+    _DEFAULT_KONTOL_CHODES_FILENAME = 'kontol_chodes.txt'
+    _DEFAULT_THIN_CHODE_FILENAME = 'cock_bytes.txt'
+    _DEFAULT_WIDE_CHODE_FILENAME = 'rodsetta_stone.txt'
+    ESCAPE_SENTINEL = b'\x0F'
+    SEPARATOR = b' '
 
     def __init__(self,
                  path=_DEFAULT_PATH,
@@ -66,10 +66,10 @@ class Cocktography(object):
 
         @_anonymous
         class KONTOL_CHODES:
-            START = self._kontol_to_chode["START"]
-            STOP = self._kontol_to_chode["STOP"]
-            MARK = self._kontol_to_chode["MARK"]
-            CONT = self._kontol_to_chode["CONT"]
+            START = self._kontol_to_chode[b'START']
+            STOP = self._kontol_to_chode[b'STOP']
+            MARK = self._kontol_to_chode[b'MARK']
+            CONT = self._kontol_to_chode[b'CONT']
             FROM_COCKBLOCK_TYPE = {
                 CockblockType.SINGLETON: (START, STOP),
                 CockblockType.INITIAL: (START, CONT),
@@ -87,11 +87,11 @@ class Cocktography(object):
         self.COCKBLOCK_PADDING = len(max(
             KONTOL_CHODES.BEGINNING, key=len)) + len(
                 max(KONTOL_CHODES.ENDING, key=len))
-        self._RE_COCKBLOCKS = re.compile(r"({0}){2}(.*){2}({1})".format(
-            r"|".join(map(re.escape, KONTOL_CHODES.BEGINNING)),
-            r"|".join(map(re.escape, KONTOL_CHODES.ENDING)),
+        self._RE_COCKBLOCKS = re.compile(br'({0}){2}(.*){2}({1})'.format(
+            br'|'.join(map(re.escape, KONTOL_CHODES.BEGINNING)),
+            br'|'.join(map(re.escape, KONTOL_CHODES.ENDING)),
             re.escape(self.SEPARATOR)))
-        self._RE_NOT_BASE64 = re.compile(r"[^+/=0-9A-Za-z]")
+        self._RE_NOT_BASE64 = re.compile(br'[^+/=0-9A-Za-z]')
 
     def _chodes2bytes(self, chodes, tolerant=True):
         result = bytearray()
@@ -103,7 +103,7 @@ class Cocktography(object):
                 result.append(digram >> 8)
                 result.append(digram & 0xFF)
             elif not tolerant:
-                raise ChodeError("Unknown symbol: {}".format(chode))
+                raise ChodeError(b'Unknown symbol: {}'.format(chode))
         return result
 
     def _bytes2chodes(self, byte_input, mode, varied_unigram_chance=0.5):
@@ -156,9 +156,8 @@ class Cocktography(object):
 
     def destroke(self, text):
         count = 0
-        while (len(text) > 0 and text[0] != self.ESCAPE_SENTINEL
-               and len(text) % 4 == 0
-               and not self._RE_NOT_BASE64.search(text)):
+        while (len(text) > 0 and text[0] != self.ESCAPE_SENTINEL and
+                len(text) % 4 == 0 and not self._RE_NOT_BASE64.search(text)):
             text = base64.standard_b64decode(text)
             count += 1
         return text.lstrip(self.ESCAPE_SENTINEL), count
@@ -192,7 +191,7 @@ class Cocktography(object):
     def dechode(self, byte_input, tolerant=False):
         ret = list()
         pos = 0
-        val = b""
+        val = b''
         prev_cb_type = None
         for (__, cb_end), (cy_begin, cy_end), cb_type in iter(
                 lambda: self.find_cockblock(byte_input[pos:]), None):
@@ -212,7 +211,7 @@ class Cocktography(object):
                     self.destroke(val + self.SEPARATOR + cyphallic_text))
                 val = b""
             elif not tolerant:
-                raise CockblockError("{} should not appear before {}".format(
+                raise CockblockError(b'{} should not appear before {}'.format(
                     prev_cb_type, cb_type))
             pos = cb_end
         return ret
