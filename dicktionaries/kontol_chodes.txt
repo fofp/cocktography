@@ -1,8 +1,8 @@
-8=wm=D
 START
-8=mw=D
+8=wm=D
 STOP
-8=ww=D
+8=mw=D
 CONT
-8wmD
+8=ww=D
 MARK
+8wmD
