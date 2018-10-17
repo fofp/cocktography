@@ -1,5 +1,5 @@
 import base64
-import itertools
+# import itertools # check this?
 import os
 import random
 import re
@@ -49,7 +49,7 @@ class Cocktography(object):
         with open(os.path.join(path, kontol_chodes_filename)) as f:
             self._kontol_to_chode = {
                 name.strip(): chode.strip()
-                for name, chode in itertools.izip_longest(*[f] * 2)
+                for name, chode in f.read().split()
             }
         with open(os.path.join(path, thin_chode_filename)) as f:
             self._unigram_to_chode = f.read().splitlines()

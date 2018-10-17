@@ -1,86 +1,56 @@
 on *:START: {
-  set -nig %cpi.kontolchodes_filename     kontol_chodes.txt
-  set -nig %cpi.thinchodes_filename       cock_bytes.txt
-  set -nig %cpi.widechodes_filename       rodsetta_stone.txt
-  set -nig %cpi.thinchodes_rev_filename   cock_bytes.rev
-  set -nig %cpi.widechodes_rev_filename   rodsetta_stone.rev
-  .fopen kontols $scriptdir $+ %cpi.kontolchodes_filename
-  if ($fopen(kontols).err) {
-    echo $color(info) -lbft File error: kontols => %fname
-    return
-  }
-  var %name
-  while (!$fopen(kontols).eof) {
-    if (& !iswm $fread(kontols)) { break }
-    %name = $v2
-    if (& !iswm $fread(kontols)) { break }
-    set -neg $+(%, cpi.KONTOL_CHODE., %name) $v2
-  }
-  .fclose kontols
+  .disable #cpi.*
   .enable #cpi.init
-  unset %cpi.init
-  if ($cpi.initialize(thin) && $cpi.initialize(wide)) {
-    set -neg %cpi.COCKBLOCK_MASK.SINGLETON    %cpi.KONTOL_CHODE.START * %cpi.KONTOL_CHODE.STOP
-    set -neg %cpi.COCKBLOCK_MASK.INITIAL      %cpi.KONTOL_CHODE.START * %cpi.KONTOL_CHODE.CONT
-    set -neg %cpi.COCKBLOCK_MASK.INTERMEDIATE %cpi.KONTOL_CHODE.MARK  * %cpi.KONTOL_CHODE.CONT
-    set -neg %cpi.COCKBLOCK_MASK.FINAL        %cpi.KONTOL_CHODE.MARK  * %cpi.KONTOL_CHODE.STOP
-    set -neg %cpi.ESCAPE_SENTINEL $chr(15)
-    set -neg %cpi.COCKBLOCK_PADDING 0
-    var %i $var(%cpi.KONTOL_CHODE.*)
-    while (%i) {
-      if ($calc(2 * $len( [ $var(%cpi.KONTOL_CHODE.*, %i) ] ) + 2) > %cpi.COCKBLOCK_PADDING) {
-        %cpi.COCKBLOCK_PADDING = $v1
-      }
-      dec %i
-    }
-    .enable #cpi.*
-    .disable #cpi.init
-  }
-  else { .disable #cpi.* }
+  cpi.init
 }
 
 #cpi.init off
-alias cpi.initialize {
-  var %rfname $scriptdir $+ $evalnext($+(%, cpi., $$1, chodes_rev_filename))
-  var %fname  $scriptdir $+ $evalnext($+(%, cpi., $$1, chodes_filename))
-  var %c2v $+(cpi., $$1, chode2value)
-  var %v2c $+(cpi.value2, $$1, chode)
-  if ($hget(%v2c, 0).item) { hfree %v2c }
-  if ($hget(%c2v, 0).item) { hfree %c2v }
-  if ($isfile(%rfname)) {
-    hmake $iif($$1 === wide, -m10000, -m329) %v2c
-    hload -n %v2c %fname
-    hmake $iif($$1 === wide, -m10000, -m329) %c2v
-    hload -b %c2v %rfname
+alias cpi.init {
+  var %ticks $ticks
+  set -nig %cpi.kontolchodes_filename     kontol_chodes.txt
+  set -nig %cpi.thinchodes_filename       cock_bytes.txt
+  set -nig %cpi.widechodes_filename       rodsetta_stone.txt
+  var %fname = $qt($scriptdir $+ %cpi.kontolchodes_filename)
+  tokenize 32 START STOP CONT MARK
+  scon -r set -neg % $!+ cpi.KONTOL_CHODE. $!+ $* $!read(%fname, sn, $* )
+  hfree -w cpi.*
+  set -neg %cpi.init.line 1
+  filter -kf $qt($scriptdir $+ %cpi.thinchodes_filename) _parsethinchodes
+  %cpi.init.line = 1
+  filter -kf $qt($scriptdir $+ %cpi.widechodes_filename) _parsewidechodes
+  unset %cpi.init.*
+  set -neg %cpi.COCKBLOCK_MASK.SINGLETON    %cpi.KONTOL_CHODE.START * %cpi.KONTOL_CHODE.STOP
+  set -neg %cpi.COCKBLOCK_MASK.INITIAL      %cpi.KONTOL_CHODE.START * %cpi.KONTOL_CHODE.CONT
+  set -neg %cpi.COCKBLOCK_MASK.INTERMEDIATE %cpi.KONTOL_CHODE.MARK  * %cpi.KONTOL_CHODE.CONT
+  set -neg %cpi.COCKBLOCK_MASK.FINAL        %cpi.KONTOL_CHODE.MARK  * %cpi.KONTOL_CHODE.STOP
+  set -neg %cpi.ESCAPE_SENTINEL $chr(15)
+  set -neg %cpi.COCKBLOCK_PADDING 0
+  var %i $var(%cpi.KONTOL_CHODE.*)
+  while (%i) {
+    if ($calc(2 * $len( [ $var(%cpi.KONTOL_CHODE.*, %i) ] ) + 2) > %cpi.COCKBLOCK_PADDING) {
+      %cpi.COCKBLOCK_PADDING = $v1
+    }
+    dec %i
   }
-  else {
-    if (& !iswm %cpi.init) {
-      set -neg %cpi.init $input(Initialize chodes? $+ $crlf $+ This might take a while.,abdk60wy)
-    }
-    if (!%cpi.init) { return }
-    var %i 1, %fhandle $+(cpi., $$1, chodes)
-    .fopen %fhandle %fname
-    if ($fopen(%fhandle).err) {
-      echo $color(info) -lbft File error: %fhandle => %fname
-      return
-    }
-    hmake $iif($$1 === wide, -m10000, -m329) %v2c
-    hmake $iif($$1 === wide, -m10000, -m329) %c2v
-    while (!$fopen(%fhandle).eof) {
-      if (& !iswm $fread(%fhandle)) { break }
-      hadd %v2c %i $v2
-      hadd %c2v $v2 %i
-      inc %i
-    }
-    .fclose %fhandle
-    hsave -b %c2v %rfname
-  }
-  return $true
+  .enable #cpi.*
+  .disable #cpi.init
+  echo $color(info) -eqs * Cocktographic chodes initialized in $calc($ticks - %ticks) $+ ms
+}
+
+alias -l _parsethinchodes {
+  hadd -m329 cpi.thinchode2value $1 %cpi.init.line
+  hadd -m329 cpi.value2thinchode %cpi.init.line $1
+  inc %cpi.init.line
+}
+
+alias -l _parsewidechodes {
+  hadd -m10000 cpi.widechode2value $1 %cpi.init.line
+  hadd -m10000 cpi.value2widechode %cpi.init.line $1
+  inc %cpi.init.line
 }
 #cpi.init end
 
 #cpi.aliases on
-
 alias cpi.decyphallicize {
   if (!$isid) { return }
   var %out &cpi.out, %in &cpi.in, %pos 1, %s
@@ -194,7 +164,7 @@ alias cpi.cyphallicize {
         if (!%prev) { %prev = $bvar(%in, %pos) }
         else {
           _appendwide %out %prev $bvar(%in, %pos)
-          %prev = $null
+          %prev =
         }
         inc %pos
       }
@@ -212,7 +182,7 @@ alias cpi.cyphallicize {
           if (!%prev) { %prev = $bvar(%in, %pos) }
           else {
             _appendwide %out %prev $bvar(%in, %pos)
-            %prev = $null
+            %prev =
           }
         }
         inc %pos
@@ -304,5 +274,4 @@ alias cpi.cockchain {
   }
 
 }
-
 #cpi.aliases end
