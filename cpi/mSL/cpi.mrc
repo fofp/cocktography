@@ -50,7 +50,7 @@ alias -l _parsewidechodes {
 alias cpi.decyphallicize {
   if (!$isid) { return }
   var %out &cpi.out, %in &cpi.in
-  var %error $iif(e isincs $2, $v1, $v1)
+  var %error $iif(e isincs $2, $true, $false)
   if ($regex(cpi, $2, /m(\d+)?/)) {
     if ($regml(cpi, 0)) { var %replace = $regml(cpi, 1) }
     else { var %replace 65533 }
