@@ -49,7 +49,7 @@ alias -l _parsewidechodes {
 #cpi.aliases on
 alias cpi.decyphallicize {
   if (!$isid) { return }
-  var %out &cpi.out, %in &cpi.in
+  var %out &cpi.decyphallicize.out, %in &cpi.decyphallicize.in
   var %error $iif(e isincs $2, $true, $false)
   if ($regex(cpi, $2, /r(\d+)?/)) {
     if ($regml(cpi, 0)) { var %replace = $regml(cpi, 1) }
@@ -89,13 +89,13 @@ alias cpi.decyphallicize {
 
 alias cpi.destroke {
   if (!$isid) { return }
-  unset %cpi.strokes
-  var %out &cpi.out, %c 0
+  unset %cpi._strokes
+  var %out &cpi.destroke.out, %c 0
   if (b isincs $2) { %out = $$1 }
   else { bunset %out | bset -t %out 1 $$1 }
   while ($_isdestrokable(%out) && $decode(%out, bm)) { inc %c }
   if ($bvar(%out, 1) == %cpi.ESCAPE_SENTINEL) { bcopy -c %out 1 %out 2 -1 }
-  set -neg %cpi.strokes %c
+  set -neg %cpi._strokes %c
   if (b isincs $2) {
     if ($prop === text) { returnex $bvar(%out, 1-).text }
     elseif ($prop === count) { return %c }
@@ -130,7 +130,7 @@ alias -l _isbase64 {
 
 alias cpi.cyphallicize {
   if (!$isid) { return }
-  var %mode thin, %out &cpi.out, %in &cpi.in, %mixed 50
+  var %mode thin, %out &cpi.cyphallicize.out, %in &cpi.cyphallicize.in, %mixed 50
   if (w isincs $2) { %mode = wide }
   if (t isincs $2) { %mode = thin }
   if ($regex(cpi, $2, /m(\d\d?)?/)) {
@@ -205,31 +205,29 @@ alias -l _appendwide {
 
 alias cpi.stroke {
   if (!$isid) { return }
-  var %out &cpi.out, %in &cpi.in, %i $$2
-  if (b isincs $3) { %in = $$1 }
-  else { bunset %in | bset -t %in 1 $$1 }
-  bunset %out | bset %out 1 %cpi.ESCAPE_SENTINEL
-  bcopy -c %out -1 %in 1 -1
+  var %msg &cpi.stroke.msg, %i $$2
+  if (b isincs $3) { %msg = $$1 }
+  else { bunset %msg | bset -t %msg 1 $$1 }
+  bcopy -c %msg 2 %msg 1 -1
+  bset %msg 1 %cpi.ESCAPE_SENTINEL
   while (%i > 0) {
-    noop $encode(%out, bm)
+    noop $encode(%msg, bm)
     dec %i
   }
   if (b isincs $3) {
-    bcopy -c %in 1 %out 1 -1
-    bunset %out
-    if ($prop == text) { returnex $bvar(%in, 1-).text }
-    else { return $bvar(%in, 0) }
+    if ($prop == text) { returnex $bvar(%msg, 1-).text }
+    else { return $bvar(%msg, 0) }
   }
   else {
-    var %ret = $bvar(%out, 1-).text
-    bunset %in %out
+    var %ret = $bvar(%msg, 1-).text
+    bunset %msg
     returnex %ret
   }
 }
 
 alias cpi.cockchain {
   if (!$isid) { return }
-  var %out &cpi.out, %in &cpi.in, %count 1
+  var %out &cpi.cockchain.out, %in &cpi.cockchain.in, %count 1
   var %maxblocklen = 340 - %cpi.COCKBLOCK_PADDING
   if ($regex(cpi, $2, /l(\d+)/)) {
     if ($calc($regml(cpi, 1) - %cpi.COCKBLOCK_PADDING) >= $calc(2 * %cpi.COCKBLOCK_PADDING)) {
@@ -240,7 +238,6 @@ alias cpi.cockchain {
   if (b isincs $2) { %in = $$1 }
   else { bunset %in | bset -t %in 1 $$1 }
   bunset %out
-
   var %pos 1, %bound %pos, %s $bvar(%in, 0)
   bset -t %out 1 %cpi.KONTOL_CHODE.START
   var %prev %bound
@@ -283,5 +280,60 @@ alias cpi.cockchain {
   }
 }
 
-alias cpi.strokes { return %cpi.strokes }
+alias cpi.strokes { return %cpi._strokes }
+
+alias cpi.enchode {
+  if (!$isid) { return }
+  var %msg &cpi.enchode.msg, %switches $2
+  if ($regex(cpi, $2, /s(\d\d?)/)) { var %strokecount = $regml(cpi, 1) }
+  else { var %strokecount = 2 }
+  if (b isincs $2) { %msg = $$1 }
+  else {
+    bunset %msg | bset -t %msg 1 $$1
+    %switches = %switches $+ b
+  }
+  var %ret
+  if ($cpi.stroke(%msg, %strokecount, %switches)) { %ret = $v1 }
+  else { return }
+  if ($cpi.cyphallicize(%msg, %switches)) { %ret = %ret $v1 }
+  else { return }
+  if (k isincs $2) {
+    if ($cpi.cockchain(%msg, %switches)) { %ret = %ret $v1 }
+    else { return }
+  }
+  if (b isincs $2) {
+    if ($prop === text) { returnex $bvar(%msg, 1-).text }
+    else { return %ret }
+  }
+  else {
+    breplace %msg 0 %cpi.ESCAPE_SENTINEL
+    %ret = $bvar(%msg, 1-).text
+    bunset %msg
+    returnex %ret
+  }
+}
+
+alias cpi.dechode {
+  if (!$isid) { return }
+  var %msg &cpi.denchode.msg, %switches $2
+  if (b isincs $2) { %msg = $$1 }
+  else {
+    bunset %msg | bset -t %msg 1 $$1
+    %switches = %switches $+ b
+  }
+  if ($cpi.decyphallicize(%msg, %switches)) { %ret = $v1 }
+  else { return }
+  if ($cpi.destroke(%msg, %switches).count) { %ret = %ret $bvar(%msg, 0) $v1 }
+  else { return }
+  if (b isincs $2) {
+    if ($prop === text) { returnex $bvar(%msg, 1-).text }
+    elseif ($prop === strokes) { return $gettok(%ret, 3, 32) }
+    else { return %ret }
+  }
+  else {
+    %ret = $bvar(%msg, 1-).text
+    bunset %msg
+    returnex %ret
+  }
+}
 #cpi.aliases end
