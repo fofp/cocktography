@@ -283,5 +283,5 @@ alias cpi.cockchain {
   }
 }
 
-alias $cpi.strokes { return %cpi.strokes }
+alias cpi.strokes { return %cpi.strokes }
 #cpi.aliases end
