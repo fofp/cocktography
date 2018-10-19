@@ -2,7 +2,6 @@
 on *:START: {
   ; format variables have the following moustaches available:
   ; {{nick}} the nick for the message
-  ; {{enchoded}} the dongified message
   ; {{dechoded}} the payload in plaintext
   ; {{count}} the number of MIME encoding iterations used
   ; {{stroke}} the stroke format string as specified
