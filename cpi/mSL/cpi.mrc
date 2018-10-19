@@ -56,7 +56,7 @@ alias cpi.decyphallicize {
     else { var %replace 65533 }
   }
   if (b isincs $2) { %in = $$1 }
-  else { bunset %in | bset -t %in 1 $$1 }
+  else { bset -ct %in 1 $$1 }
   bunset %out
   var %pos 1, %s = $bvar(%in, 0)
   while (%pos <= %s) {
@@ -90,28 +90,30 @@ alias cpi.decyphallicize {
 alias cpi.destroke {
   if (!$isid) { return }
   unset %cpi._strokes
-  var %out &cpi.destroke.out, %c 0
-  if (b isincs $2) { %out = $$1 }
-  else { bunset %out | bset -t %out 1 $$1 }
-  while ($_isdestrokable(%out) && $decode(%out, bm)) { inc %c }
-  if ($bvar(%out, 1) == %cpi.ESCAPE_SENTINEL) { bcopy -c %out 1 %out 2 -1 }
+  var %msg &cpi.destroke, %c 0
+  if (b isincs $2) { %msg = $$1 }
+  else { bset -ct %msg 1 $$1 }
+  while ($_isdestrokable(%msg) && $decode(%msg, bm)) { inc %c }
+  if ($bvar(%msg, 1) == %cpi.ESCAPE_SENTINEL) { bcopy -c %msg 1 %msg 2 -1 }
   set -neg %cpi._strokes %c
   if (b isincs $2) {
-    if ($prop === text) { returnex $bvar(%out, 1-).text }
+    if ($prop === text) { returnex $bvar(%msg, 1-).text }
     elseif ($prop === count) { return %c }
-    else { return $bvar(%out, 0) }
+    else { return $bvar(%msg, 0) }
   }
   else {
-    var %ret = $bvar(%out, 1-).text
-    bunset %out
+    var %ret = $bvar(%msg, 1-).text
+    bunset %msg
     returnex %ret
   }
 }
 
 alias -l _isdestrokable {
-  if ($bvar($$1, 1) == %cpi.ESCAPE_SENTINEL) { return $false }
-  elseif (!$_isbase64($$1)) { return $false }
-  return $true
+  if ($bvar($$1, 1) == %cpi.ESCAPE_SENTINEL) $&
+    || (!$_isbase64($$1)) {
+    return $false
+  }
+  else { return $true }
 }
 
 alias -l _isbase64 {
@@ -138,7 +140,7 @@ alias cpi.cyphallicize {
     if ($regml(cpi, 0)) { %mixed = $regml(cpi, 1) }
   }
   if (b isincs $2) { %in = $$1 }
-  else { bunset %in | bset -t %in 1 $$1 }
+  else { bset -ct %in 1 $$1 }
   var %s $bvar(%in, 0), %pos 1
   bunset %out
   if (%mode === thin) {
@@ -207,7 +209,7 @@ alias cpi.stroke {
   if (!$isid) { return }
   var %msg &cpi.stroke.msg, %i $$2
   if (b isincs $3) { %msg = $$1 }
-  else { bunset %msg | bset -t %msg 1 $$1 }
+  else { bset -ct %msg 1 $$1 }
   bcopy -c %msg 2 %msg 1 -1
   bset %msg 1 %cpi.ESCAPE_SENTINEL
   while (%i > 0) {
@@ -236,7 +238,8 @@ alias cpi.cockchain {
     else { %maxblocklen = $v2 }
   }
   if (b isincs $2) { %in = $$1 }
-  else { bunset %in | bset -t %in 1 $$1 }
+  else { bset -ct %in 1 $$1 }
+  if (!$bvar(%in, 0)) { return }
   bunset %out
   var %pos 1, %bound %pos, %s $bvar(%in, 0)
   bset -t %out 1 %cpi.KONTOL_CHODE.START
@@ -284,12 +287,10 @@ alias cpi.strokes { return %cpi._strokes }
 
 alias cpi.enchode {
   if (!$isid) { return }
-  var %msg &cpi.enchode.msg, %switches $2
-  if ($regex(cpi, $2, /s(\d\d?)/)) { var %strokecount = $regml(cpi, 1) }
-  else { var %strokecount = 2 }
-  if (b isincs $2) { %msg = $$1 }
+  var %msg &cpi.enchode.msg, %strokecount $$2, %switches $3
+  if (b isincs $3) { %msg = $$1 }
   else {
-    bunset %msg | bset -t %msg 1 $$1
+    bset -ct %msg 1 $$1
     %switches = %switches $+ b
   }
   var %ret
@@ -297,11 +298,11 @@ alias cpi.enchode {
   else { return }
   if ($cpi.cyphallicize(%msg, %switches)) { %ret = %ret $v1 }
   else { return }
-  if (k isincs $2) {
+  if (k isincs $3) {
     if ($cpi.cockchain(%msg, %switches)) { %ret = %ret $v1 }
     else { return }
   }
-  if (b isincs $2) {
+  if (b isincs $3) {
     if ($prop === text) { returnex $bvar(%msg, 1-).text }
     else { return %ret }
   }
@@ -315,10 +316,10 @@ alias cpi.enchode {
 
 alias cpi.dechode {
   if (!$isid) { return }
-  var %msg &cpi.denchode.msg, %switches $2
+  var %msg &cpi.dechode, %switches $2
   if (b isincs $2) { %msg = $$1 }
   else {
-    bunset %msg | bset -t %msg 1 $$1
+    bset -ct %msg 1 $$1
     %switches = %switches $+ b
   }
   if ($cpi.decyphallicize(%msg, %switches)) { %ret = $v1 }
