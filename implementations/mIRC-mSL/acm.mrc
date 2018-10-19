@@ -152,7 +152,7 @@ alias acm.bappendb {
 
 alias acm.enchode {
   if ($isid) { return }
-  var %strokes 2
+  var -n %strokes 2, %event text
   if (--* iswm $1) { tokenize 32 $right($1, -1) $2- }
   elseif (-* iswm $1) {
     if (b isincs $1) {
@@ -169,14 +169,13 @@ alias acm.enchode {
   }
   if (//* iswm $1) { tokenize 32 $right($1, -1) $2- }
   elseif (/me == $1) {
-    var -n %event action
+    %event = action
     tokenize 32 $2-
   }
   elseif (/ $+ * iswm $1) {
-    echo $color(info) -aq Command $qt($v1) not allowed here. Did you mean "/ $+ $v1 $+ "?
+    echo $color(info) -aq Command $qt($v2) not allowed here. Did you mean "/ $+ $v2 $+ "?
     return
   }
-  else { var -n %event text }
   bset -ct &acm.enchode 1 $$1-
   if ($cpi.enchode(&acm.enchode, %strokes, %switches $+ kb)) {
     var -n %pos 1
