@@ -18,6 +18,7 @@ on *:START: {
   set -ign %acm.text_format   {{stroke}}<{{nick}}> {{dechoded}}
   set -ign %acm.action_format * {{stroke}}{{nick}} {{dechoded}}
   set -ign %acm.subscriptions *
+  set -ign %acm.echo_alias acm.echo
   set -neg %acm._hkey $!iif($event,$+($cid,/,$target,/,$fulladdress,/,$event),command)
 }
 
@@ -64,7 +65,7 @@ alias acm.echo {
 alias acm.hkey { return $evalnext(%acm._hkey) }
 
 alias acm.s_handler {
-  acm.echo $cpi.destroke($cpi.decyphallicize($parms))
+  [ %acm.echo_alias ] $cpi.destroke($cpi.decyphallicize($parms))
   halt
 }
 
@@ -103,14 +104,14 @@ alias acm.f_handler {
       acm.bunset
       if ($cpi.destroke(&acm.f_handler.msg, b)) {
         if ($v1 <= 4096) {
-          acm.echo $bvar(&acm.f_handler.msg, 1-).text
+          [ %acm.echo_alias ] $bvar(&acm.f_handler.msg, 1-).text
           bunset &acm.f_handler.msg
           halt
         }
         else {
           noop TODO
-          acm.echo [ERROR] LONG CHODES ARE TOO LONG!
-          acm.echo $bvar(&acm.f_handler.msg, 1-4096).text
+          [ %acm.echo_alias ] [ERROR] LONG CHODES ARE TOO LONG!
+          [ %acm.echo_alias ] $bvar(&acm.f_handler.msg, 1-4096).text
           bunset &acm.f_handler.msg
           halt
         }
@@ -188,7 +189,7 @@ alias acm.enchode {
       else { break }
     }
     set -neg %acm._strokes %strokes
-    acm.echo %event $$1-
+    [ %acm.echo_alias ] %event $$1-
     unset %acm._strokes
   }
   bunset &acm.enchode
