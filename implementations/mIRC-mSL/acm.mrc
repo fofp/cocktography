@@ -145,7 +145,7 @@ alias acm.bappend {
 alias acm.bappendb {
   if ($acm.bget(&acm.bappendb)) {
     bcopy -c &acm.bappendb -1 $$1 1 -1
-    acm.bsetb $$1
+    acm.bsetb &acm.bappendb
     bunset &acm.bappendb
   }
 }
