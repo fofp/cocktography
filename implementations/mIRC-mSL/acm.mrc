@@ -18,7 +18,7 @@ on *:START: {
   set -ign %acm.stroke_3_format 04{{count}}🍆
   set -ign %acm.text_format   {{stroke}}<{{nick}}> {{dechoded}}
   set -ign %acm.action_format * {{stroke}}{{nick}} {{dechoded}}
-  set -ign %acm.subscription *
+  set -ign %acm.subscriptions *
   set -neg %acm._hkey $!iif($event,$+($cid,/,$target,/,$fulladdress,/,$event),command)
 }
 
@@ -34,26 +34,26 @@ alias acm.disable {
 
 #acm on
 ; Intercept singleton cockblock/cockchain
-on ^1:text:%cpi.COCKBLOCK_MASK.SINGLETON:%acm.subscription:   acm.s_handler $parms
-on ^1:action:%cpi.COCKBLOCK_MASK.SINGLETON:%acm.subscription: acm.s_handler $parms
+on ^1:text:%cpi.COCKBLOCK_MASK.SINGLETON:%acm.subscriptions:   acm.s_handler $parms
+on ^1:action:%cpi.COCKBLOCK_MASK.SINGLETON:%acm.subscriptions: acm.s_handler $parms
 
 ; Intercept first cockblock in a cockchain
-on ^1:text:%cpi.COCKBLOCK_MASK.INITIAL:%acm.subscription:   acm.i_handler $parms
-on ^1:action:%cpi.COCKBLOCK_MASK.INITIAL:%acm.subscription: acm.i_handler $parms
+on ^1:text:%cpi.COCKBLOCK_MASK.INITIAL:%acm.subscriptions:   acm.i_handler $parms
+on ^1:action:%cpi.COCKBLOCK_MASK.INITIAL:%acm.subscriptions: acm.i_handler $parms
 
 ; Intercept intermediate cockblock in a cockchain
-on ^1:text:%cpi.COCKBLOCK_MASK.INTERMEDIATE:%acm.subscription:   acm.m_handler $parms
-on ^1:action:%cpi.COCKBLOCK_MASK.INTERMEDIATE:%acm.subscription: acm.m_handler $parms
+on ^1:text:%cpi.COCKBLOCK_MASK.INTERMEDIATE:%acm.subscriptions:   acm.m_handler $parms
+on ^1:action:%cpi.COCKBLOCK_MASK.INTERMEDIATE:%acm.subscriptions: acm.m_handler $parms
 
 ; Intercept final cockblock in a cockchain
-on ^1:text:%cpi.COCKBLOCK_MASK.FINAL:%acm.subscription:   acm.f_handler $parms
-on ^1:action:%cpi.COCKBLOCK_MASK.FINAL:%acm.subscription: acm.f_handler $parms
+on ^1:text:%cpi.COCKBLOCK_MASK.FINAL:%acm.subscriptions:   acm.f_handler $parms
+on ^1:action:%cpi.COCKBLOCK_MASK.FINAL:%acm.subscriptions: acm.f_handler $parms
 #acm end
 
 alias acm.echo {
   if ($event) { var -n %event $event, %dechoded $parms }
   else { var -n %event $$1, %dechoded $$2- }
-  var -n %nick $iif($nick, $v1, $me), %strokes $iif(%acm._strokes, $v1, $cpi.strokes)
+  var -n %nick $iif($nick, $v1, $me), %strokes $iif(%acm._strokes !== $null, $v1, $cpi.strokes)
   var -n %index $iif(%acm.stroke_max_format < %strokes, $v1, $v2)
   var -n %stroke $+(%, acm.stroke_, %index, _format)
   var -n %format $+(%, acm., %event, _format)
@@ -103,7 +103,7 @@ alias acm.f_handler {
       bunset &acm.f_handler.in
       acm.bunset
       if ($cpi.destroke(&acm.f_handler.msg, b)) {
-        if ($v1 < 4096) {
+        if ($v1 <= 4096) {
           acm.echo $bvar(&acm.f_handler.msg, 1-).text
           bunset &acm.f_handler.msg
           halt

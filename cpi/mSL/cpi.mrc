@@ -287,6 +287,7 @@ alias cpi.strokes { return %cpi._strokes }
 
 alias cpi.enchode {
   if (!$isid) { return }
+  if ($$2 !isnum) { return }
   var %msg &cpi.enchode.msg, %strokecount $$2, %switches $3
   if (b isincs $3) { %msg = $$1 }
   else {
