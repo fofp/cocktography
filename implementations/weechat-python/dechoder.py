@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import argparse
 import re
 from cpi import cpi
 
@@ -17,7 +16,9 @@ ZERO_STROKE_FORMAT = b'{strokes}🐓 {prefix}' + \
 MULTI_STROKE_FORMAT = b'{strokes}🍆 {prefix}' + \
     PREFIX_SEPARATOR + b'{dechoded}'
 ALLOW_MIXED_SECURITY = True
-RE_host = re.compile(br'(?<=,nick_)[^,]*(?=,|$)')
+RE_HOST = re.compile(br'(?<=,nick_)[^,]*(?=,|$)')
+RE_CMD = re.compile(
+    br'-(?:(?:s(?P<strokes>\d+))|(?P<mode>[mtw])|(?:l(?P<length>\d+)))+ *')
 # globals
 api = cpi.Cocktography()
 __COCKS = {}
@@ -39,7 +40,7 @@ def autococktography(data, modifier, modifier_data, string):
         return (string)
     if not ALLOW_MIXED_SECURITY and cb_begin != 0 and cb_end != len(message):
         return (string)
-    user = RE_host.search(modifier_data)
+    user = RE_HOST.search(modifier_data)
     user = user.group(0) if user else b'null'
     cyphallic_text = message[cy_begin:cy_end]
     decyphallicized_text = api.decyphallicize(cyphallic_text)
@@ -79,32 +80,50 @@ def autococktography(data, modifier, modifier_data, string):
 
 
 def enchoder_cmd(data, buffer, args):
-    mode_choices = [
-        name for (name, value) in vars(cpi.CyphallicMethod.__class__).items()
-        if not callable(value) and not name.startswith(b'__')
-    ]
-    parser = argparse.ArgumentParser()
-    parser.add_argument(b'-s', b'--strokes', default=2, type=int)
-    parser.add_argument(
-        b'-m',
-        b'--mode',
-        default=b'THIN_CHODE',
-        type=bytes,
-        choices=mode_choices)
-    parser.add_argument(b'-l', b'--max-length', default=340, type=int)
-    try:
-        (opts, args) = parser.parse_known_args(args.split())
-    except SystemExit:
-        weechat.prnt(b'', b'Error: in "{}", invalid options.'.format(args))
-        return weechat.WEECHAT_RC_ERROR
-    opts = vars(opts)
-    text = api.SEPARATOR.join(args)
-    enchoded = api.enchode(
-        bytearray(text), opts[b'strokes'],
-        getattr(cpi.CyphallicMethod, opts[b'mode']), opts[b'max_length'])
-    weechat.command(
-        buffer, weechat.hook_modifier_exec(b'irc_color_decode', b'1',
-                                           enchoded))
+    # Usage
+    #  /enchode [-flags] [/me]
+    # Flags
+    #  sN: strokes, where N is the number of strokes to apply
+    #  lN: length, where N is the maximum length message to output
+    # The following three flags are mutually exclusive:
+    #  m: mixed chodes
+    #  t: thin chodes
+    #  w: wide chodes
+    cmd = '/say '
+    flags = {b'strokes': 2, 'mode': b't', b'length': 340}
+    modes = {
+        b'm': cpi.CyphallicMethod.MIXED_CHODE,
+        b't': cpi.CyphallicMethod.THIN_CHODE,
+        b'w': cpi.CyphallicMethod.WIDE_CHODE
+    }
+    if args[0:2] == b'--':
+        args = args[1:]
+    else:
+        matches = RE_CMD.match(args)
+        if matches:
+            groups = matches.groupdict()
+            for key in set(groups).intersection(flags):
+                val = groups[key]
+                if val is not None:
+                    flags[key] = int(val) if val.isdigit() else val
+            args = args[matches.end(0):]
+    if args[0:2] == b'//':
+        args = args[1:]
+    elif args[0] == b'/':
+        if args[0:4] == b'/me ':  # case insensitive
+            args = args[4:]
+            cmd = b'/me '
+        else:
+            weechat.prnt(
+                b'', b'"{0}" not allowed here. Did you mean "/{0}"?'.format(
+                    args[:args.find(b' ')]))
+            return weechat.WEECHAT_RC_ERROR
+    text = api.enchode(
+        bytearray(args), flags[b'strokes'], modes[flags[b'mode']],
+        flags['length'])
+    text = weechat.hook_modifier_exec(b'irc_color_decode', b'1', text)
+    for line in text.splitlines():
+        weechat.command(buffer, cmd + line)
     return weechat.WEECHAT_RC_OK
 
 

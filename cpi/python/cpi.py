@@ -49,7 +49,7 @@ class Cocktography(object):
         with open(os.path.join(path, kontol_chodes_filename)) as f:
             self._kontol_to_chode = {
                 name.strip(): chode.strip()
-                for name, chode in f.read().split()
+                for name, chode in (l.split() for l in f)
             }
         with open(os.path.join(path, thin_chode_filename)) as f:
             self._unigram_to_chode = f.read().splitlines()

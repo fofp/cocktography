@@ -19,6 +19,7 @@ on *:START: {
   set -ign %acm.action_format * {{stroke}}{{nick}} {{dechoded}}
   set -ign %acm.subscriptions *
   set -ign %acm.echo_alias acm.echo
+  ; Here there be dragons
   set -neg %acm._hkey $!iif($event,$+($cid,/,$target,/,$fulladdress,/,$event),command)
 }
 
@@ -110,7 +111,7 @@ alias acm.f_handler {
         }
         else {
           noop TODO
-          [ %acm.echo_alias ] [ERROR] LONG CHODES ARE TOO LONG!
+          [ %acm.echo_alias ] [ERROR] MAXIMUM OVER-CHODE! - showing only the first 4096 bytes:
           [ %acm.echo_alias ] $bvar(&acm.f_handler.msg, 1-4096).text
           bunset &acm.f_handler.msg
           halt
