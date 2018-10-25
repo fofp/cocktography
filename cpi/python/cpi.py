@@ -1,5 +1,4 @@
 import base64
-# import itertools # check this?
 import os
 import random
 import re
