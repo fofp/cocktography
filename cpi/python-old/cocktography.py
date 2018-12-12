@@ -124,12 +124,15 @@ class Cocktograph(object):
         """
         text = to_unicode(text)
         if not text.startswith(self.START):
-            raise InvalidCockstring("{} does not start with {}".format(text, self.START))
+            raise InvalidCockstring(
+                "{} does not start with {}".format(text, self.START))
         if not text.endswith(self.STOP):
-            raise InvalidCockstring("{} does not end with {}".format(text, self.STOP))
+            raise InvalidCockstring(
+                "{} does not end with {}".format(text, self.STOP))
         symbols = text.split()
         if ignore_invalid:
-            symbols = [s for s in symbols if s in self.dechoder_ring["out"].keys()]
+            symbols = [
+                s for s in symbols if s in self.dechoder_ring["out"].keys()]
         dechoded = "".join([self.dechoder_ring["out"][w] for w in text.split()
                             if w not in self.CONTROL_CODES])
         strokes = 0
