@@ -52,7 +52,7 @@ on ^1:action:%cpi.COCKBLOCK_MASK.FINAL:%acm.subscriptions: acm.f_handler $parms
 #acm end
 
 alias acm.echo {
-  if ($event) { var -n %event $event, %dechoded $parms }
+  if ($event != input) { var -n %event $event, %dechoded $parms }
   else { var -n %event $$1, %dechoded $$2- }
   var -n %nick $iif($nick, $v1, $me), %strokes $iif(%acm._strokes !== $null, $v1, $cpi.strokes)
   var -n %index $iif(%acm.stroke_max_format < %strokes, $v1, $v2)
