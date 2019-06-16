@@ -61,15 +61,15 @@ foreach my $load_type (keys %test_cumshots) {
         is(($penis->destroke($test_cumshots{$load_type}{$stroke_count}))[0], $test_sperm{$load_type}, "destroke() / input: $load_type / strokes: $stroke_count");
 
         my $mixed_cock_chain = $penis->enchode_string($test_sperm{$load_type}, $stroke_count, $chode_modes{"mixed"}, 326);
-        is($penis->dechode_string($mixed_cock_chain), $test_sperm{$load_type}, "mixed-mode enchode/dechode_string / type: $load_type / strokes: $stroke_count");
+        is_deeply([$penis->dechode_string($mixed_cock_chain)], [($test_sperm{$load_type}, $stroke_count)], "mixed-mode enchode/dechode_string / type: $load_type / strokes: $stroke_count");
     }
 }
 
 foreach my $chode_mode (keys %test_cockchains) {
     foreach my $load_type (keys %{$test_cockchains{$chode_mode}}) {
         foreach my $stroke_count (keys %{$test_cockchains{$chode_mode}{$load_type}}) {
-            is($penis->enchode_string($test_sperm{$load_type}, $stroke_count, $chode_modes{$chode_mode}, 326), $test_cockchains{$chode_mode}{$load_type}{$stroke_count}, "enchode_string() / mode: $chode_mode / input: $load_type / strokes: $stroke_count");
-            is($penis->dechode_string($test_cockchains{$chode_mode}{$load_type}{$stroke_count}), $test_sperm{$load_type}, "dechode_string() / mode: $chode_mode / output: $load_type / strokes: $stroke_count");
+            is_deeply($penis->enchode_string($test_sperm{$load_type}, $stroke_count, $chode_modes{$chode_mode}, 326), $test_cockchains{$chode_mode}{$load_type}{$stroke_count}, "enchode_string() / mode: $chode_mode / input: $load_type / strokes: $stroke_count");
+            is_deeply([$penis->dechode_string($test_cockchains{$chode_mode}{$load_type}{$stroke_count})], [($test_sperm{$load_type}, $stroke_count)], "dechode_string() / mode: $chode_mode / output: $load_type / strokes: $stroke_count");
         }
     }
 }

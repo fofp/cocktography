@@ -105,6 +105,7 @@ sub dechode_string($$) {
 	my $dechoded;
 	my $prev_type = -1;
 	my $condom;
+	my $strokes;
 
 	my $cockblocks = $self->find_cockblocks($input);
 		
@@ -114,6 +115,7 @@ sub dechode_string($$) {
 		if ($cockblock->{'TYPE'} == $COCKBLOCK_TYPE{'SINGLETON'} && ($prev_type != $COCKBLOCK_TYPE{'INITIAL'} && $prev_type != $COCKBLOCK_TYPE{'INTERMEDIATE'})) {
 			my ($destroked, $strokecount) = $self->destroke($cyphallic);
 			$dechoded .= $destroked;
+			$strokes += $strokecount;
 		} elsif ($cockblock->{'TYPE'} == $COCKBLOCK_TYPE{'INITIAL'} && ($prev_type != $COCKBLOCK_TYPE{'INITIAL'} && $prev_type != $COCKBLOCK_TYPE{'INTERMEDIATE'})) {
 			$condom = $cyphallic;
 		} elsif ($cockblock->{'TYPE'} == $COCKBLOCK_TYPE{'INTERMEDIATE'} && ($prev_type == $COCKBLOCK_TYPE{'INITIAL'} || $prev_type == $COCKBLOCK_TYPE{'INTERMEDIATE'})) {
@@ -121,6 +123,7 @@ sub dechode_string($$) {
 		} elsif ($cockblock->{'TYPE'} == $COCKBLOCK_TYPE{'FINAL'} && ($prev_type == $COCKBLOCK_TYPE{'INITIAL'} || $prev_type == $COCKBLOCK_TYPE{'INTERMEDIATE'})) {
 			$condom .= $cyphallic;
 			my ($destroked, $strokecount) = $self->destroke($condom);
+			$strokes += $strokecount;
 			$dechoded .= $destroked;
 		} else {
 			carp "Error: $COCKBLOCK_TYPE_REVERSE{$prev_type} should not appear before $COCKBLOCK_TYPE_REVERSE{type}!";
@@ -129,7 +132,7 @@ sub dechode_string($$) {
 		$prev_type = $cockblock->{'TYPE'};
 	}
 	
-	return $dechoded;
+	return ($dechoded, $strokes);
 }
 
 sub make_cockchain ($$$) {
