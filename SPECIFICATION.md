@@ -123,14 +123,15 @@ basic cyphallic enchoding and dechoding
 Similar to a 2-stroke modern cyphallic chodec, but without an escape sentinel.
 
 ### Cyphallic Enchoding
-1. Payload becomes base64 encoded version of payload
-1. Payload becomes base64 encoded version of payload
-1. Perform 1:1 substitution of payload code points using historical dicktionary
+1. Payload becomes base 64 encoded version of payload
+1. Payload becomes base 64 encoded version of payload
+1. Perform 1:1 substitution of payload code points using historical
+dicktionary
 
 ### Cyphallic Dechoding
 1. Perform 1:1 substitution of cyphallic text using dicktionary
-1. Result becomes base64 decoded version of result
-1. Result becomes base64 decoded version of result
+1. Result becomes base 64 decoded version of result
+1. Result becomes base 64 decoded version of result
 
 ## Historical Dicktionary
 
