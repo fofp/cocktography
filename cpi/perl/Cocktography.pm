@@ -87,7 +87,6 @@ sub enchode_string($$$$$) {
 	
 	my ($self, $input, $strokes, $mode, $cockblock_size) = @_;
 		
-	
 	return $self->make_cockchain(
 		$self->cyphallicize(
 			$self->stroke($input, $strokes),
