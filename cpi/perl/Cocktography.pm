@@ -145,7 +145,7 @@ sub make_cockchain ($$$) {
 	
 	$Text::Wrap::columns = $size - $COCKBLOCK_PADDING;
 	$Text::Wrap::huge = "overflow";
-	
+
 	my @cockblocks = split(/\n/, wrap("","",$text));
 	my $sepmarker = $SEPARATOR . $KONTOL_CHODES{'CONT'} . "\n" . $KONTOL_CHODES{'MARK'} . $SEPARATOR;
 	
@@ -165,9 +165,9 @@ sub stroke ($$$) {
 	my($self, $text, $count) = @_;
 		
 	$text = "${ESCAPE_SENTINEL}$text";
-	
+
 	while ($count > 0) {
-		$text = encode_base64($text);
+		$text = encode_base64($text, "");
 		chomp $text;
 		$count -= 1;
 	}
