@@ -67,7 +67,7 @@ sub irsii_enchode($$) {
 	my $color;
 	my $glyph;
 	
-	if ($input =~ /(?:[-\\\/]s(?:troke)?[\s:]?(\d+)\s?|[-\\\/]?m(?:ode)?[\s:]?([twm])\s)*(.*)/){
+	if ($input =~ /(?:\s+)?(?:[-\\\/]s(?:troke)?[\s:]?(\d+)\s?|[-\\\/]?m(?:ode)?[\s:]?([twm])\s)*(.*)/){
 		$strokes = $1;
 		$mode = $2;
 		$text = $3;
