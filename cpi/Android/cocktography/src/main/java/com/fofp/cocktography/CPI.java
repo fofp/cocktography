@@ -59,16 +59,17 @@ public class CPI {
     // strokes - the higher this value, the more fluffs the data gets
     // maxLength - The maximum length each cockblock should be
     // mode - thin/wide/mixed (mixed is probably best for most applications, wide is best for saving space)
+    // variance - the amount of chodes that will be thin during mixed mode.
     // Returns an array. Each element in the array is one cockblock of the length specified.
     // transmit them in order ([0], [1], et al) May only have a single element.
     public String[] Enchode (String text, Integer strokes, Integer maxLength,CockMode mode) {
+        return Enchode(text, strokes, maxLength,mode,70);
+    }
+    public String[] Enchode (String text, Integer strokes, Integer maxLength,CockMode mode,Integer variance) {
         StringBuilder chodes = new StringBuilder();
         List<String> cockblocks = new ArrayList<>();
-        //strokes
-        //cockblock size
 
-
-        String cocks = BytesToChodes(Stroke(text,strokes).getBytes(), mode);
+        String cocks = BytesToChodes(Stroke(text,strokes).getBytes(), mode, variance);
         chodes.append(kontol_chodes.get("START"));
 
         for (String cock : cocks.split(" ")) {
@@ -105,9 +106,6 @@ public class CPI {
         return text;
     }
 
-    private String BytesToChodes(byte[] data, CockMode mode) {
-        return BytesToChodes(data,mode,70);
-    }
     //Converts bytes to ascii schlongs for any kinda use
     private String BytesToChodes(byte[] data, CockMode mode, Integer variance) {
         List<String> dicks = new ArrayList<String>();
@@ -120,8 +118,7 @@ public class CPI {
                 dicks.add(cock_bytes[(int)b]);
             }
         }
-        //if "123" data = byte[3] {49,50,31};
-        //String came in single byte.
+
         if (mode == CockMode.WIDE_CHODE) {
 
             for (byte b : data) {
