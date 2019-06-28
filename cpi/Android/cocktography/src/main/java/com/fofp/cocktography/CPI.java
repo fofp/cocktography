@@ -16,14 +16,13 @@ import java.util.Random;
 public class CPI {
 
 
-    Resources res;
-    private String[] wide_chodes;
-    private String[] cock_bytes;
-    private Hashtable<String,String> kontol_chodes = new Hashtable<>();
-    private Hashtable<String,Integer> reverse_wide = new Hashtable<>();
-    private Hashtable<String,Integer> reverse_cock = new Hashtable<>();
-    private byte sentinel = 0x0f;
-    private Random rand = new Random();
+    private final String[] wide_chodes;
+    private final String[] cock_bytes;
+    private final Hashtable<String,String> kontol_chodes = new Hashtable<>();
+    private final Hashtable<String,Integer> reverse_wide = new Hashtable<>();
+    private final Hashtable<String,Integer> reverse_cock = new Hashtable<>();
+    private final byte sentinel = 0x0f;
+    private final Random rand = new Random();
     public enum CockMode {
         THIN_CHODE,
         WIDE_CHODE,
@@ -31,10 +30,11 @@ public class CPI {
     }
 
     //Calling the constructor pre-loads the dicktionaries into cache.
+    @SuppressWarnings("ForLoopReplaceableByForEach")
     public CPI(Context context) {
         //Calling app needs to send the context to get the resources.
         // I don't like that, but haven't figured out how to make it not dumb.
-        res = context.getResources();
+        Resources res = context.getResources();
         wide_chodes = res.getStringArray(R.array.rodsetta_stone);
         cock_bytes = res.getStringArray(R.array.cock_bytes);
 
@@ -59,13 +59,14 @@ public class CPI {
     // strokes - the higher this value, the more fluffs the data gets
     // maxLength - The maximum length each cockblock should be
     // mode - thin/wide/mixed (mixed is probably best for most applications, wide is best for saving space)
-    // variance - the amount of chodes that will be thin during mixed mode.
+    // variance (optional, default 70%) - the amount of chodes that will be thin during mixed mode.
     // Returns an array. Each element in the array is one cockblock of the length specified.
     // transmit them in order ([0], [1], et al) May only have a single element.
     public String[] Enchode (String text, Integer strokes, Integer maxLength,CockMode mode) {
         return Enchode(text, strokes, maxLength,mode,70);
     }
-    public String[] Enchode (String text, Integer strokes, Integer maxLength,CockMode mode,Integer variance) {
+    @SuppressWarnings("WeakerAccess")
+    public String[] Enchode (String text, Integer strokes, Integer maxLength, CockMode mode, Integer variance) {
         StringBuilder chodes = new StringBuilder();
         List<String> cockblocks = new ArrayList<>();
 
@@ -108,7 +109,7 @@ public class CPI {
 
     //Converts bytes to ascii schlongs for any kinda use
     private String BytesToChodes(byte[] data, CockMode mode, Integer variance) {
-        List<String> dicks = new ArrayList<String>();
+        List<String> dicks = new ArrayList<>();
 
         byte prev = 0;
         boolean eatme = false;
@@ -185,12 +186,13 @@ public class CPI {
     }
 
     private String[] Destroke(String text) {
-        Integer strokes = 0;
+        int strokes = 0;
+        //noinspection ConstantConditions
         while(text.charAt(0) != sentinel && text.length() % 4 == 0 && text.length() > 0) {
             text = new String(Base64.decode(text,0));
             ++strokes;
         }
-        return new String[] { strokes.toString(),text.replaceFirst("^\\x0f","")};
+        return new String[] {Integer.toString(strokes),text.replaceFirst("^\\x0f","")};
     }
 
 }
