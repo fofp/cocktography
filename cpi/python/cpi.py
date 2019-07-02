@@ -2,7 +2,6 @@ import base64
 import os
 import random
 import re
-import textwrap
 
 
 class ChodeError(ValueError):
@@ -45,14 +44,14 @@ class Cocktography(object):
                  kontol_chodes_filename=_DEFAULT_KONTOL_CHODES_FILENAME,
                  thin_chode_filename=_DEFAULT_THIN_CHODE_FILENAME,
                  wide_chode_filename=_DEFAULT_WIDE_CHODE_FILENAME):
-        with open(os.path.join(path, kontol_chodes_filename)) as f:
+        with open(os.path.join(path, kontol_chodes_filename), 'rb') as f:
             self._kontol_to_chode = {
                 name.strip(): chode.strip()
                 for name, chode in (l.split() for l in f)
             }
-        with open(os.path.join(path, thin_chode_filename)) as f:
+        with open(os.path.join(path, thin_chode_filename), 'rb') as f:
             self._unigram_to_chode = f.read().splitlines()
-        with open(os.path.join(path, wide_chode_filename)) as f:
+        with open(os.path.join(path, wide_chode_filename), 'rb') as f:
             self._digram_to_chode = f.read().splitlines()
         self._unigram_from_chode = {
             chode: unigram
@@ -83,13 +82,12 @@ class Cocktography(object):
             ENDING = (CONT, STOP)
 
         self.KONTOL_CHODES = KONTOL_CHODES
-        self.COCKBLOCK_PADDING = len(max(
-            KONTOL_CHODES.BEGINNING, key=len)) + len(
-                max(KONTOL_CHODES.ENDING, key=len))
-        self._RE_COCKBLOCKS = re.compile(br'({0}){2}(.*){2}({1})'.format(
-            br'|'.join(map(re.escape, KONTOL_CHODES.BEGINNING)),
-            br'|'.join(map(re.escape, KONTOL_CHODES.ENDING)),
-            re.escape(self.SEPARATOR)))
+        self.COCKBLOCK_PADDING = len(max(KONTOL_CHODES.BEGINNING, key=len))\
+            + len(max(KONTOL_CHODES.ENDING, key=len))
+        self._RE_COCKBLOCKS = re.compile(re.escape(self.SEPARATOR).join([
+            br'(' + br'|'.join(map(re.escape, KONTOL_CHODES.BEGINNING)) +
+            br')', br'(.*)', br'(' +
+            br'|'.join(map(re.escape, KONTOL_CHODES.ENDING)) + br')']))
         self._RE_NOT_BASE64 = re.compile(br'[^+/=0-9A-Za-z]')
 
     def _chodes2bytes(self, chodes, tolerant=True):
@@ -98,9 +96,8 @@ class Cocktography(object):
             if chode in self._unigram_from_chode:
                 result.append(self._unigram_from_chode[chode])
             elif chode in self._digram_from_chode:
-                digram = self._digram_from_chode[chode]
-                result.append(digram >> 8)
-                result.append(digram & 0xFF)
+                result.extend(self._digram_from_chode[chode]
+                              .to_bytes(2, 'big'))
             elif not tolerant:
                 raise ChodeError(b'Unknown symbol: {}'.format(chode))
         return result
@@ -116,7 +113,8 @@ class Cocktography(object):
                 if prev is None:
                     prev = byte
                 else:
-                    result.append(self._digram_to_chode[(prev << 8) | byte])
+                    result.append(self._digram_to_chode[
+                        int.from_bytes([prev, byte], 'big')])
                     prev = None
             if prev is not None:
                 result.append(self._unigram_to_chode[prev])
@@ -133,8 +131,8 @@ class Cocktography(object):
                     if prev is None:
                         prev = byte
                     else:
-                        result.append(
-                            self._digram_to_chode[(prev << 8) | byte])
+                        result.append(self._digram_to_chode[
+                            int.from_bytes([prev, byte], 'big')])
                         prev = None
             if prev is not None:
                 result.append(self._unigram_to_chode[prev])
@@ -151,7 +149,7 @@ class Cocktography(object):
         while count > 0:
             text = base64.standard_b64encode(text)
             count -= 1
-        return bytearray(text)
+        return bytes(text)
 
     def destroke(self, text):
         count = 0
@@ -165,22 +163,30 @@ class Cocktography(object):
         match = self._RE_COCKBLOCKS.search(text)
         if match:
             groups = match.groups()
-            return match.span(), match.span(
-                2), self.KONTOL_CHODES.TO_COCKBLOCK_TYPE[groups[0::2]]
+            return match.span(), match.span(2), \
+                self.KONTOL_CHODES.TO_COCKBLOCK_TYPE[groups[0::2]]
         else:
             return None
 
     def make_cockchain(self, chodes, cockblock_size):
-        lines = textwrap.wrap(
-            chodes,
-            cockblock_size - self.COCKBLOCK_PADDING,
-            break_on_hyphens=False,
-            break_long_words=False,
-            expand_tabs=False)
-        sep = self.SEPARATOR + self.KONTOL_CHODES.CONT + \
-            b'\n' + self.KONTOL_CHODES.MARK + self.SEPARATOR
-        return self.KONTOL_CHODES.START + self.SEPARATOR + sep.join(lines) + \
-            self.SEPARATOR + self.KONTOL_CHODES.STOP
+        pos = 0
+        length = len(chodes)
+        head_kontol = self.KONTOL_CHODES.START
+        tail_kontol = self.KONTOL_CHODES.CONT
+        while pos < length:
+            end = pos + cockblock_size
+            if end < length:
+                end = chodes[:end].rfind(self.SEPARATOR)
+            else:
+                end = length
+                tail_kontol = self.KONTOL_CHODES.STOP
+            next = end + 1
+            while (chodes[end - 1] == self.SEPARATOR):
+                end -= 1
+            yield self.SEPARATOR \
+                .join([head_kontol, chodes[pos:end], tail_kontol])
+            pos = next
+            head_kontol = self.KONTOL_CHODES.MARK
 
     def enchode(self, byte_input, strokes, mode, cockblock_size):
         return self.make_cockchain(
@@ -212,5 +218,6 @@ class Cocktography(object):
             elif not tolerant:
                 raise CockblockError(b'{} should not appear before {}'.format(
                     prev_cb_type, cb_type))
+            prev_cb_type = cb_type
             pos = cb_end
         return ret
