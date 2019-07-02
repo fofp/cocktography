@@ -24,49 +24,55 @@ on *:START: {
 }
 
 alias acm.enable {
-  .enable #acm
-  echo $color(info) -aeq * Auto-Cocktographic Messaging enabled
+  var %1 $iif($1 == action || $1 == text, $1)
+  .enable #acm $+ $iif(%1, . $+ %1)
+  echo $color(info) -aeq * Auto-Cocktographic Messaging enabled $+ $iif(%1, : %1)
 }
 
 alias acm.disable {
-  .disable #acm
-  echo $color(info) -aeq * Auto-Cocktographic Messaging disabled
+  var %1 $iif($1 == action || $1 == text, $1)
+  .disable #acm $+ $iif(%1, . $+ %1)
+  echo $color(info) -aeq * Auto-Cocktographic Messaging disabled $+ $iif(%1, : %1)
 }
 
-#acm on
-; Intercept singleton cockblock/cockchain
-on ^1:text:%cpi.COCKBLOCK_MASK.SINGLETON:%acm.subscriptions:   acm.s_handler $parms
-on ^1:action:%cpi.COCKBLOCK_MASK.SINGLETON:%acm.subscriptions: acm.s_handler $parms
-
-; Intercept first cockblock in a cockchain
-on ^1:text:%cpi.COCKBLOCK_MASK.INITIAL:%acm.subscriptions:   acm.i_handler $parms
-on ^1:action:%cpi.COCKBLOCK_MASK.INITIAL:%acm.subscriptions: acm.i_handler $parms
-
-; Intercept intermediate cockblock in a cockchain
-on ^1:text:%cpi.COCKBLOCK_MASK.INTERMEDIATE:%acm.subscriptions:   acm.m_handler $parms
+#acm.action on
+on ^1:action:%cpi.COCKBLOCK_MASK.SINGLETON:%acm.subscriptions:    acm.s_handler $parms
+on ^1:action:%cpi.COCKBLOCK_MASK.INITIAL:%acm.subscriptions:      acm.i_handler $parms
 on ^1:action:%cpi.COCKBLOCK_MASK.INTERMEDIATE:%acm.subscriptions: acm.m_handler $parms
+on ^1:action:%cpi.COCKBLOCK_MASK.FINAL:%acm.subscriptions:        acm.f_handler $parms
+#acm.action end
 
-; Intercept final cockblock in a cockchain
-on ^1:text:%cpi.COCKBLOCK_MASK.FINAL:%acm.subscriptions:   acm.f_handler $parms
-on ^1:action:%cpi.COCKBLOCK_MASK.FINAL:%acm.subscriptions: acm.f_handler $parms
-#acm end
+#acm.text on
+on ^1:text:%cpi.COCKBLOCK_MASK.SINGLETON:%acm.subscriptions:      acm.s_handler $parms
+on ^1:text:%cpi.COCKBLOCK_MASK.INITIAL:%acm.subscriptions:        acm.i_handler $parms
+on ^1:text:%cpi.COCKBLOCK_MASK.INTERMEDIATE:%acm.subscriptions:   acm.m_handler $parms
+on ^1:text:%cpi.COCKBLOCK_MASK.FINAL:%acm.subscriptions:          acm.f_handler $parms
+#acm.text end
+
+alias -l _shift {
+  var -l %l $len($2)
+  returnex $mid($$1, $calc(%l - 1 + $pos($mid($$1, %l), $$3)))
+}
 
 alias acm.echo {
-  if ($event != input) { var -n %event $event, %dechoded $parms }
-  else { var -n %event $$1, %dechoded $$2- }
-  var -n %nick $iif($nick, $v1, $me), %strokes $iif(%acm._strokes !== $null, $v1, $cpi.strokes)
+  var -l %parms $parms
+  var -n %event $$1
+  %parms = $_shift(%parms, $1, $2) | tokenize 32 %parms
+  %strokes = $$1
+  %dechoded = $_shift(%parms, $1, $2) 
+  var -n %nick $iif($nick, $v1, $me)
   var -n %index $iif(%acm.stroke_max_format < %strokes, $v1, $v2)
   var -n %stroke $+(%, acm.stroke_, %index, _format)
   var -n %format $+(%, acm., %event, _format)
   %stroke = $replacexcs($evalnext(%stroke), {{count}}, %strokes)
   %format = $replacexcs($evalnext(%format), {{stroke}}, %stroke, {{nick}}, %nick, {{dechoded}}, %dechoded)
-  echo $color(%event) -lbft $iif($event, $target, $active) %format
+  echo $color(%event) -lbft  $iif(%event != input, $target, $active) %format
 }
 
 alias acm.hkey { return $evalnext(%acm._hkey) }
 
 alias acm.s_handler {
-  [ %acm.echo_alias ] $cpi.destroke($cpi.decyphallicize($parms))
+  [ %acm.echo_alias ] $event $cpi.destroke($cpi.decyphallicize($parms))
   halt
 }
 
@@ -103,16 +109,17 @@ alias acm.f_handler {
       bcopy &acm.f_handler.msg -1 &acm.f_handler.in 1 -1
       bunset &acm.f_handler.in
       acm.bunset
-      if ($cpi.destroke(&acm.f_handler.msg, b)) {
-        if ($v1 <= 4096) {
-          [ %acm.echo_alias ] $bvar(&acm.f_handler.msg, 1-).text
+      if ($cpi.destroke(&acm.f_handler.msg, b).count >= 0) {
+        var %c $v1
+        if ($bvar(&acm.f_handler.msg, 0) <= 4096) {
+          [ %acm.echo_alias ] $event %c $bvar(&acm.f_handler.msg, 1-).text
           bunset &acm.f_handler.msg
           halt
         }
         else {
-          noop TODO
-          [ %acm.echo_alias ] [ERROR] MAXIMUM OVER-CHODE! - showing only the first 4096 bytes:
-          [ %acm.echo_alias ] $bvar(&acm.f_handler.msg, 1-4096).text
+          ; TODO
+          [ %acm.echo_alias ] info %c [ERROR] MAXIMUM OVER-CHODE! - showing only the first 4096 bytes:
+          [ %acm.echo_alias ] $event %c $bvar(&acm.f_handler.msg, 1-4096).text
           bunset &acm.f_handler.msg
           halt
         }
@@ -153,8 +160,8 @@ alias acm.bappendb {
 
 alias acm.enchode {
   if ($isid) { return }
-  var -n %strokes 2, %event text
-  if (--* iswm $1) { tokenize 32 $right($1, -1) $2- }
+  var -n %strokes 2, %event text, %parms $parms
+  if (--* iswm $1) { %parms = $right(%parms, -1) | tokenize 32 %parms }
   elseif (-* iswm $1) {
     if (b isincs $1) {
       echo $color(info) -aq Switch "b" not allowed here.
@@ -166,32 +173,32 @@ alias acm.enchode {
     }
     if ($regex(acm, $1, /s(\d\d?)/)) { %strokes = $regml(acm, 1) }
     var %switches $right($1, -1)
-    tokenize 32 $2-
+    %parms = $_shift(%parms, $1, $2) | tokenize 32 %parms
   }
-  if (//* iswm $1) { tokenize 32 $right($1, -1) $2- }
+  if (//* iswm $1) { %parms = $right(%parms, -1) | tokenize 32 %parms }
   elseif (/me == $1) {
     %event = action
-    tokenize 32 $2-
+    %parms = $_shift(%parms, $1, $2) | tokenize 32 %parms
   }
   elseif (/ $+ * iswm $1) {
     echo $color(info) -aq Command $qt($v2) not allowed here. Did you mean "/ $+ $v2 $+ "?
     return
   }
-  bset -ct &acm.enchode 1 $$1-
+  bset -ct &acm.enchode 1 %parms
   if ($cpi.enchode(&acm.enchode, %strokes, %switches $+ kb)) {
-    var -n %pos 1
-    while ($true) {
-      if (%event == text) { .msg $active $bvar(&acm.enchode, %pos -).text }
-      elseif (%event == action) { .describe $active $bvar(&acm.enchode, %pos -).text }
-      if ($bfind(&acm.enchode, %pos, 0)) {
-        %pos = $v1 + 1
-        while ($bvar(&acm.enchode, %pos) === 0) { inc %pos }
-      }
-      else { break }
-    }
-    set -neg %acm._strokes %strokes
-    [ %acm.echo_alias ] %event $$1-
-    unset %acm._strokes
+    if (%event == text) { acm.iteratechain &acm.enchode .msg $active }
+    elseif (%event == text) { acm.iteratechain &acm.enchode .describe $active }
   }
   bunset &acm.enchode
+  [ %acm.echo_alias ] %event %strokes %parms
+}
+
+alias acm.iteratechain {
+  var -n %pos 1
+  $$2- $bvar($$1, %pos -).text
+  while ($bfind($$1, %pos, 0)) {
+    %pos = $v1 + 1
+    while ($bvar($$1, %pos) === 0) { inc %pos }
+    $$2- $bvar($$1, %pos -).text
+  }
 }

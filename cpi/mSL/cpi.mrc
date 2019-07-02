@@ -10,7 +10,7 @@ alias cpi.init {
   set -nig %cpi.kontolchodes_filename kontol_chodes.txt
   set -nig %cpi.thinchodes_filename   cock_bytes.txt
   set -nig %cpi.widechodes_filename   rodsetta_stone.txt
-  var %fname = $qt($scriptdir $+ %cpi.kontolchodes_filename)
+  var %fname $qt($scriptdir $+ %cpi.kontolchodes_filename)
   tokenize 32 START STOP CONT MARK
   scon -r set -neg % $!+ cpi.KONTOL_CHODE. $!+ $* $!read(%fname, sn, $* )
   hfree -w cpi.*
@@ -52,13 +52,13 @@ alias cpi.decyphallicize {
   var %out &cpi.decyphallicize.out, %in &cpi.decyphallicize.in
   var %error $iif(e isincs $2, $true, $false)
   if ($regex(cpi, $2, /r(\d+)?/)) {
-    if ($regml(cpi, 0)) { var %replace = $regml(cpi, 1) }
+    if ($regml(cpi, 0)) { var %replace $regml(cpi, 1) }
     else { var %replace 65533 }
   }
   if (b isincs $2) { %in = $$1 }
   else { bset -ct %in 1 $$1 }
   bunset %out
-  var %pos 1, %s = $bvar(%in, 0)
+  var %pos 1, %s $bvar(%in, 0)
   while (%pos <= %s) {
     while ($bvar(%in, %pos) == %cpi.SEPARATOR) { inc %pos }
     if ($bfind(%in, %pos, %cpi.SEPARATOR)) { var %wordend $v1 - 1 }
@@ -89,22 +89,20 @@ alias cpi.decyphallicize {
 
 alias cpi.destroke {
   if (!$isid) { return }
-  unset %cpi._strokes
   var %msg &cpi.destroke, %c 0
   if (b isincs $2) { %msg = $$1 }
   else { bset -ct %msg 1 $$1 }
   while ($_isdestrokable(%msg) && $decode(%msg, bm)) { inc %c }
   if ($bvar(%msg, 1) == %cpi.ESCAPE_SENTINEL) { bcopy -c %msg 1 %msg 2 -1 }
-  set -neg %cpi._strokes %c
   if (b isincs $2) {
     if ($prop === text) { returnex $bvar(%msg, 1-).text }
-    elseif ($prop === count) { return %c }
+  elseif ($prop === count) { return %c }
     else { return $bvar(%msg, 0) }
   }
   else {
-    var %ret = $bvar(%msg, 1-).text
+    var %ret $bvar(%msg, 1-).text
     bunset %msg
-    returnex %ret
+    returnex %c %ret
   }
 }
 
@@ -221,7 +219,7 @@ alias cpi.stroke {
     else { return $bvar(%msg, 0) }
   }
   else {
-    var %ret = $bvar(%msg, 1-).text
+    var %ret $bvar(%msg, 1-).text
     bunset %msg
     returnex %ret
   }
@@ -277,13 +275,11 @@ alias cpi.cockchain {
   }
   else {
     breplace %out 0 %cpi.ESCAPE_SENTINEL
-    var %ret = $bvar(%out, 1-).text
+    var %ret $bvar(%out, 1-).text
     bunset %in %out
     returnex %ret
   }
 }
-
-alias cpi.strokes { return %cpi._strokes }
 
 alias cpi.enchode {
   if (!$isid) { return }
@@ -325,7 +321,7 @@ alias cpi.dechode {
   }
   if ($cpi.decyphallicize(%msg, %switches)) { %ret = $v1 }
   else { return }
-  if ($cpi.destroke(%msg, %switches).count) { %ret = %ret $bvar(%msg, 0) $v1 }
+  if ($cpi.destroke(%msg, %switches).count >= 0) { %ret = %ret $bvar(%msg, 0) $v1 }
   else { return }
   if (b isincs $2) {
     if ($prop === text) { returnex $bvar(%msg, 1-).text }
@@ -333,9 +329,10 @@ alias cpi.dechode {
     else { return %ret }
   }
   else {
+    var %strokes $gettok(%ret, 3, 32)
     %ret = $bvar(%msg, 1-).text
     bunset %msg
-    returnex %ret
+    returnex %strokes %ret
   }
 }
 #cpi.aliases end
