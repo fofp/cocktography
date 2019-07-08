@@ -1,0 +1,10 @@
+*.pyc
+.vscode/launch.json
+.vscode/settings.json
+cpi/NET/.vs/cpi/v15/*
+cpi/NET/cpi/obj/*
+cpi/NET/Test/obj/*
+cpi/NET/cpi/bin/*.exe
+cpi/NET/cpi/bin/*.dll
+cpi/NET/Test/bin/*.exe
+cpi/NET/Test/bin/*.dll
