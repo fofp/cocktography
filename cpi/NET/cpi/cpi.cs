@@ -13,6 +13,8 @@ namespace fofp
         private Dictionary<int, string> widechodes = new Dictionary<int,string>();
         private Dictionary<int, string> thinchodes = new Dictionary<int, string>();
         private Dictionary<string, string> kontolchodes = new Dictionary<string, string>();
+        private Dictionary<string, int> reversewide = new Dictionary<string, int>();
+        private Dictionary<string, int> reversethin = new Dictionary<string, int>();
         private byte sentinel = 0x0f;
 
         public enum CockMode
@@ -32,6 +34,7 @@ namespace fofp
                 while ((dick = sr.ReadLine()) != null)
                 {
                     widechodes.Add(i, dick);
+                    reversewide.Add(dick, i);
                     ++i;
                 }
             }
@@ -42,6 +45,7 @@ namespace fofp
                 while ((dick = sr.ReadLine()) != null)
                 {
                     thinchodes.Add(i, dick);
+                    reversethin.Add(dick, i);
                     ++i;
                 }
 
@@ -221,18 +225,17 @@ namespace fofp
             foreach (var chode in chodes.Split(' ')) 
             {
 
-                value = widechodes.Where(dong => dong.Value == chode).Select(dong => dong.Key).FirstOrDefault();
-                if (value != 0) 
+                
+                if (reversewide.ContainsKey(chode))
                 {
-                    buff[0] = (byte)(value >> 8);
-                    buff[1] = (byte)(value & 0xFF);
+                    buff[0] = (byte)(reversewide[chode] >> 8);
+                    buff[1] = (byte)(reversewide[chode] & 0xFF);
 
                     result.Write(buff, 0, 2);
                 }
-                value = thinchodes.Where(dong => dong.Value == chode).Select(dong => dong.Key).FirstOrDefault();
-                if (value != 0)
+                if (reversethin.ContainsKey(chode))
                 {
-                    buff[0] = (byte)(value & 0xFF);
+                    buff[0] = (byte)(reversethin[chode] & 0xFF);
                     result.Write(buff, 0, 1);
                 }
             }
