@@ -115,11 +115,10 @@ def enchoder_cmd(data, buffer, args):
                 b'', b'"{0}" not allowed here. Did you mean "/{0}"?'.format(
                     args[:args.find(b' ')]))
             return weechat.WEECHAT_RC_ERROR
-    text = api.enchode(
-        bytearray(args), flags[b'strokes'], modes[flags[b'mode']],
-        flags[b'length'])
-    text = weechat.hook_modifier_exec(b'irc_color_decode', b'1', text)
-    for line in text.splitlines():
+    for line in api.enchode(
+        bytes(args), flags[b'strokes'], modes[flags[b'mode']],
+            flags[b'length']):
+        line = weechat.hook_modifier_exec(b'irc_color_decode', b'1', line)
         weechat.command(buffer, cmd + line)
     return weechat.WEECHAT_RC_OK
 

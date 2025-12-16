@@ -9,6 +9,7 @@ use MIME::Base64;
 use Text::Wrap;
 use Encode;
 use List::Util qw(min max);
+use File::Basename;
 
 my %CYPHALLIC_METHOD = ("THIN" => 1, "WIDE" => 2, "MIXED" => 3);
 my %COCKBLOCK_TYPE = ("SINGLETON" => 1, "INITIAL" => 2, "INTERMEDIATE" => 3, "FINAL" => 4);
@@ -26,6 +27,8 @@ my %widechodelist;
 my @thinchodes;
 my @widechodes;
 
+my @search_paths = (".", dirname(__FILE__));
+
 sub new {
 		my $class = shift;
 		
@@ -33,30 +36,26 @@ sub new {
 		
 		my($parameters) = @_;
 		
-		my $kontolfilename = exists $parameters->{"kontolfile"} ? $parameters->{"kontolfile"} : "kontol_chodes.txt";
-		my $thinfilename = exists $parameters->{"thinfile"} ? $parameters->{"thinfile"} : "cock_bytes.txt";
-		my $widefilename = exists $parameters->{"widefile"} ? $parameters->{"widefile"} : "rodsetta_stone.txt";
-		
 		# Load kontol chodes
-		open(my $kontolgrip, "<", $kontolfilename) or croak "Couldn't open kontol chode file $kontolfilename!";
+		my ($kontolgrip, $kontolpath) = load_file("kontol_chodes.txt");
 		while(<$kontolgrip>) {
 			chomp;
 			my ($chode, $kontol) = split(/ /);
 			$KONTOL_CHODES{$chode} = $kontol;
-			carp "Unrecognized kontol chode $chode found in $kontolfilename!" if($chode ne "START" && $chode ne "STOP" && $chode ne "CONT" && $chode ne "MARK");
+			carp "Unrecognized kontol chode $chode found in ${kontolpath}!" if($chode ne "START" && $chode ne "STOP" && $chode ne "CONT" && $chode ne "MARK");
 		}
 		close($kontolgrip);
-		croak "Kontol chode START was not found in $kontolfilename!" if(!exists $KONTOL_CHODES{"START"});
-		croak "Kontol chode STOP was not found in $kontolfilename!" if(!exists $KONTOL_CHODES{"STOP"});
-		croak "Kontol chode CONT was not found in $kontolfilename!" if(!exists $KONTOL_CHODES{"CONT"});
-		croak "Kontol chode MARK was not found in $kontolfilename!" if(!exists $KONTOL_CHODES{"MARK"});
+		croak "Kontol chode START was not found in ${kontolpath}!" if(!exists $KONTOL_CHODES{"START"});
+		croak "Kontol chode STOP was not found in ${kontolpath}!" if(!exists $KONTOL_CHODES{"STOP"});
+		croak "Kontol chode CONT was not found in ${kontolpath}!" if(!exists $KONTOL_CHODES{"CONT"});
+		croak "Kontol chode MARK was not found in ${kontolpath}!" if(!exists $KONTOL_CHODES{"MARK"});
 		
 		$KONTOL_CHODES{"[BEGIN]"} = [$KONTOL_CHODES{'START'}, $KONTOL_CHODES{'MARK'}];
 		$KONTOL_CHODES{"[END]"} = [$KONTOL_CHODES{'CONT'}, $KONTOL_CHODES{'STOP'}];
 		$COCKBLOCK_PADDING = max(map(length, @{$KONTOL_CHODES{'[BEGIN]'}})) + max(map(length, @{$KONTOL_CHODES{'[END]'}}));
 		
 		# Load thin-chodes
-		open(my $thingrip, "<", $thinfilename) or croak "Couldn't open thin-chode file $thinfilename!";
+		my ($thingrip, $thinpath) = load_file("cock_bytes.txt");
 		while(<$thingrip>) {
 			chomp;
 			$thinchodelist{$_} = $#thinchodes + 1;
@@ -65,7 +64,7 @@ sub new {
 		close($thingrip);
 		
 		# Load wide-chodes
-		open(my $widegrip, "<", $widefilename) or croak "Couldn't open wide-chode file $widefilename!";
+		my ($widegrip, $widepath) = load_file("rodsetta_stone.txt");
 		while(<$widegrip>) {
 			chomp;
 			$widechodelist{$_} = $#widechodes + 1;
@@ -299,6 +298,22 @@ sub find_cockblocks($$) {
 	}
 	
 	return $cockblocks;
+}
+
+sub load_file($) {
+	my $filename = $_[0];
+
+	my $filehandle;
+
+	foreach my $path (@search_paths) {
+		my $fullpath = "${path}/$filename";
+		if(-e $fullpath) {
+			open($filehandle, "<", $fullpath) or croak "Couldn't open ${fullpath}!";
+			return ($filehandle, $fullpath);
+		}
+	}
+
+	croak "Couldn't find $filename in: " . join(", ", @search_paths);
 }
 
 sub bytes_to_string($$) {
