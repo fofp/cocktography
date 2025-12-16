@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cocktography Settings</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            width: 320px;
+            padding: 16px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 20px;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .subtitle {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 20px;
+        }
+
+        .setting {
+            margin-bottom: 16px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #8B5CF6;
+        }
+
+        .checkbox-setting {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .checkbox-setting label {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.02);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        .status {
+            text-align: center;
+            padding: 8px;
+            margin-top: 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d1fae5;
+            color: #065f46;
+            display: block;
+        }
+
+        .help-text {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .shortcut {
+            margin-top: 16px;
+            padding: 12px;
+            background: #f3f4f6;
+            border-radius: 6px;
+            font-size: 11px;
+            color: #4b5563;
+        }
+
+        .shortcut strong {
+            color: #1f2937;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><span>🍆</span> Cocktography</h1>
+        <div class="subtitle">Encode/decode settings for IRCCloud</div>
+
+        <div class="setting checkbox-setting">
+            <input type="checkbox" id="enabled" checked>
+            <label for="enabled">Enable extension</label>
+        </div>
+
+        <div class="setting checkbox-setting">
+            <input type="checkbox" id="autoDecode" checked>
+            <label for="autoDecode">Auto-decode incoming messages</label>
+        </div>
+
+        <div class="setting">
+            <label for="strokes">Stroke count</label>
+            <input type="number" id="strokes" min="0" max="10" value="2">
+            <div class="help-text">Number of base64 encoding rounds (0-10)</div>
+        </div>
+
+        <div class="setting">
+            <label for="mode">Chode mode</label>
+            <select id="mode">
+                <option value="1">Thin (1 byte/chode)</option>
+                <option value="2">Wide (2 bytes/chode)</option>
+                <option value="3">Mixed (random)</option>
+            </select>
+            <div class="help-text">Wide chodes are more efficient</div>
+        </div>
+
+        <div class="setting">
+            <label for="cockblockSize">Max message length</label>
+            <input type="number" id="cockblockSize" min="100" max="500" value="340">
+            <div class="help-text">IRC typically limits to ~400 chars</div>
+        </div>
+
+        <button id="save">Save Settings</button>
+
+        <div id="status" class="status"></div>
+
+        <div class="shortcut">
+            <strong>Keyboard shortcut:</strong><br>
+            Ctrl+Shift+E to encode current message
+        </div>
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
